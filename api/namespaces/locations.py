@@ -1,8 +1,16 @@
 # #!python
 
+from re import L
+from typing_extensions import Required
 from flask_restplus import Namespace, Resource, fields
 
 api = Namespace('locations', description='Location related operations')
+
+location_list_model = api.model('Location-List', {
+    'id': fields.String(required=True, description='The location list identifier'),
+    'name': fields.String(required=True, description='The location list name'),
+    'locations': fields.List(fields.String, Required=True, description='List of location IDs')
+})
 
 location_model = api.model('Location', {
     'id': fields.String(required=True, description='The location identifier (https://service.unece.org/trade/locode/nz.htm) '),
@@ -12,6 +20,14 @@ location_model = api.model('Location', {
 	'population': fields.Integer(required=True, description='The location\'s population'),
 })
 
+LOCATION_LISTS = [
+	{'id':'NZ', 'name': "Default NZ locations", 'locations': ['WLG', 'GIS', 'CHC', 'IVC', 'DUD', 'NPE', 'NPL', 'PMR', 'NSN',
+                                                              'BHE', 'WHK', 'GMN', 'ZQN', 'AKL', 'ROT',
+                                                              'TUO', 'WRE', 'LVN', 'TMZ', 'TIU', 'OAM', 'PUK', 'HLZ', 'LYJ',]},
+	{'id':'NZ2', 'name': "Main Cities NZ", 'locations': ['WLG', 'CHC', 'DUD', 'NPL', 'AKL', 'ROT', 'HLZ',]},
+]
+
+#Omitting country for now, focus on NZ
 LOCATIONS = [
 {'id': 'WLG', 'name': 'Wellington', 'latitude': -41.276825, 'longitude': 174.777969, 'population': 200000.0},
 {'id': 'GIS', 'name': 'Gisborne', 'latitude': -38.662334, 'longitude': 178.017654, 'population': 50000.0},
@@ -40,23 +56,66 @@ LOCATIONS = [
 
 
 @api.route('/')
-class LocationList(Resource):
+class LocationListList(Resource):
     @api.doc('list_locations')
     @api.marshal_list_with(location_model)
     def get(self):
         '''List all locations'''
         return LOCATIONS
+    
+@api.route('/lists')
+class LocationListList(Resource):
+    @api.doc('list_location_lists')
+    @api.marshal_list_with(location_list_model)
+    def get(self):
+        '''List all location lists'''
+        return LOCATION_LISTS
 
-@api.route('/<id>')
-@api.param('id', 'The location identifier')
+@api.route('/<location_list_id>')
+@api.param('location_list_id', 'The location list identifier')
+@api.response(404, 'Location not found')
+class Location(Resource):
+    @api.doc('get_location_list_contents')
+    @api.marshal_with(location_list_model)
+    def get(self, location_list_id):
+        '''Fetch a location_list given its identifier'''
+        for loc_list in LOCATION_LISTS:
+            if loc_list['id'] == location_list_id:
+                return loc_list
+        api.abort(404)
+        
+@api.route('/<location_list_id>/all')
+@api.param('location_list_id', 'The location list identifier')
+@api.response(404, 'Location not found')
+class Location(Resource):
+    @api.doc('get_location_list\s location data')
+    @api.marshal_with(location_model)
+    def get(self, location_list_id):
+        '''Fetch a location_list's locations given its identifier'''
+        locs = []
+        for loc_list in LOCATION_LISTS:
+            if loc_list['id'] == location_list_id:
+                for location in LOCATIONS:
+                    if location['id'] in loc_list['locations']:
+                        locs.append(location)
+        if locs == []:
+            api.abort(404)
+        else:
+            return locs
+    
+@api.route('/<location_list_id>/<location_id>')
+@api.param('location_list_id', 'The location list identifier')
+@api.param('location_id', 'The location identifier')
 @api.response(404, 'Location not found')
 class Location(Resource):
     @api.doc('get_location')
     @api.marshal_with(location_model)
-    def get(self, id):
-        '''Fetch a location given its identifier'''
-        for loc in LOCATIONS:
-            if loc['id'] == id:
-                return loc
+    def get(self, location_list_id, location_id):
+        '''Fetch a location given its identifier and list identifier'''
+        for loc_list in LOCATION_LISTS:
+            if loc_list['id'] == location_list_id:
+                for loc in LOCATIONS:
+                    if loc['id'] == location_id:
+                        return loc
         api.abort(404)
 
