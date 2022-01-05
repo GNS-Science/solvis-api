@@ -1,0 +1,111 @@
+service: solvis-api
+
+plugins:
+  - serverless-python-requirements
+  - serverless-wsgi
+  - serverless-dynamodb-local
+package:
+  individually: false
+  exclude:
+    - .git/**
+    - .pytest_cache/**
+    - .tox/**
+    - bin/**
+    - demo/**
+    - lib/**
+    - node_modules/**
+    - prof/**
+    - package.json
+    - package-log.json
+    - node_modules/**
+
+custom:
+  #serverless-wsgi settings
+  wsgi:
+    app: api.app
+    packRequirements: false
+  #serverless-python-requirements settings
+  pythonRequirements:
+    dockerizePip: non-linux
+  dynamodb:
+  # If you only want to use DynamoDB Local in some stages, declare them here
+    stages:
+      - dev
+    start:
+      port: 8000
+      inMemory: true
+      heapInitial: 200m
+      heapMax: 1g
+      migrate: true
+      seed: true
+      convertEmptyValues: true
+    seed:
+      domain:
+        sources:
+          - table: ${self:custom.stage}-solutions
+            sources: [./offline/migrations/solutions-seed.json]
+
+# DRY constants: define all compound/generated names in one place
+# Override args are: .. defaults:
+# --app_acroym          signed-uploader
+# --s3_bucket           self:custom.app_acronym
+# --s3_key_base         self:custom.stage
+# --region              us-east-1
+# --stage               test
+# --deletion_policy     delete
+
+  app_acronym: ${opt:acronym, self:service}
+  default_stage: local
+  stage: ${opt:stage, self:custom.default_stage}
+  stack_name: ${self:custom.app_acronym}-${self:custom.stage}
+  region: ${opt:region, self:provider.region}
+  deletion_policy: Delete
+
+provider:
+  name: aws
+  runtime: python3.8
+  # stage: ${opt:stage, 'dev'}
+  region: ap-southeast-2
+  environment:
+    REGION: ${self:custom.region}
+
+  apiKeys:
+    - name: TempApiKey-${self:custom.stage}
+      description: Api key until we have an auth function # Optional
+
+functions:
+  app:
+    description: The REST API of ${self:service}
+    handler: wsgi_handler.handler
+    memorySize: 384 # optional, in MB, default is 1024
+    timeout: 30 # optional, in seconds, default is 6
+    #events:
+      # - http:
+      #     path: graphql
+      #     method: OPTIONS
+      # - http:
+      #     path: graphql
+      #     method: POST
+      #     private: true
+      # - http:
+      #     path: graphql
+      #     method: GET
+      #     private: true
+    #environment:
+
+
+resources:
+  Resources:
+    solutionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.stage}-solutions
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
