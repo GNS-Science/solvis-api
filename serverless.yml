@@ -22,7 +22,7 @@ package:
 custom:
   #serverless-wsgi settings
   wsgi:
-    app: api.app
+    app: api.api.app
     packRequirements: false
   #serverless-python-requirements settings
   pythonRequirements:
