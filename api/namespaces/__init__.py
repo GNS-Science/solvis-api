@@ -1,6 +1,7 @@
 from flask_restplus import Api
 
 from .locations import api as locations
+from .solutions import api as solutions
 
 api = Api(
     title='Solvis API',
@@ -10,3 +11,4 @@ api = Api(
 )
 
 api.add_namespace(locations)
+api.add_namespace(solutions)
