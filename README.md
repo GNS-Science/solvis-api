@@ -12,3 +12,9 @@ npm install --save serverless-python-requirements
 npm install --save serverless-wsgi
 sls dynamodb install
 ```
+
+### WSGI
+
+```
+sls wsgi serve
+```

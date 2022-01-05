@@ -44,7 +44,6 @@ LOCATIONS = [
     LYJ = ["Lower Hutt", -41.2127, 174.8997, 112e3]
 """
 
-
 @api.route('/')
 class LocationList(Resource):
     @api.doc('list_locations')
