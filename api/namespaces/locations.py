@@ -1,4 +1,4 @@
-#!python
+# #!python
 
 from flask_restplus import Namespace, Resource, fields
 
@@ -7,42 +7,37 @@ api = Namespace('locations', description='Location related operations')
 location_model = api.model('Location', {
     'id': fields.String(required=True, description='The location identifier (https://service.unece.org/trade/locode/nz.htm) '),
     'name': fields.String(required=True, description='The location name'),
-	#    'latitude'
-	#	'longitude'
-	#	'population'
+	'latitude': fields.Float(required=True, description='The location\'s latitude'),
+	'longitude': fields.Float(required=True, description='The location\'s longitude'),
+	'population': fields.Integer(required=True, description='The location\'s population'),
 })
 
 LOCATIONS = [
-	{'id':'WLG', 'name': "Wellington"},
-	{'id':'GIS', 'name':"Gisborne"}
-]
+{'id': 'WLG', 'name': 'Wellington', 'latitude': -41.276825, 'longitude': 174.777969, 'population': 200000.0},
+{'id': 'GIS', 'name': 'Gisborne', 'latitude': -38.662334, 'longitude': 178.017654, 'population': 50000.0},
+{'id': 'CHC', 'name': 'Christchurch', 'latitude': -43.52565, 'longitude': 172.639847, 'population': 300000.0},
+{'id': 'IVC', 'name': 'Invercargill', 'latitude': -46.413056, 'longitude': 168.3475, 'population': 80000.0},
+{'id': 'DUD', 'name': 'Dunedin', 'latitude': -45.8740984, 'longitude': 170.5035755, 'population': 100000.0},
+{'id': 'NPE', 'name': 'Napier', 'latitude': -39.4902099, 'longitude': 176.917839, 'population': 80000.0},
+{'id': 'NPL', 'name': 'New Plymouth', 'latitude': -39.0579941, 'longitude': 174.0806474, 'population': 80000.0},
+{'id': 'PMR', 'name': 'Palmerston North', 'latitude': -40.356317, 'longitude': 175.6112388, 'population': 70000.0},
+{'id': 'NSN', 'name': 'Nelson', 'latitude': -41.2710849, 'longitude': 173.2836756, 'population': 80000.0},
+{'id': 'BHE', 'name': 'Blenheim', 'latitude': -41.5118691, 'longitude': 173.9545856, 'population': 50000.0},
+{'id': 'WHK', 'name': 'Whakatane', 'latitude': -37.9519223, 'longitude': 176.9945977, 'population': 50000.0},
+{'id': 'GMN', 'name': 'Greymouth', 'latitude': -42.4499469, 'longitude': 171.2079875, 'population': 30000.0},
+{'id': 'ZQN', 'name': 'Queenstown', 'latitude': -45.03, 'longitude': 168.66, 'population': 15000.0},
+{'id': 'AKL', 'name': 'Auckland', 'latitude': -36.848461, 'longitude': 174.763336, 'population': 2000000.0},
+{'id': 'ROT', 'name': 'Rotorua', 'latitude': -38.1446, 'longitude': 176.2378, 'population': 77000.0},
+{'id': 'TUO', 'name': 'Taupo', 'latitude': -38.6843, 'longitude': 176.0704, 'population': 26000.0},
+{'id': 'WRE', 'name': 'Whangarei', 'latitude': -35.7275, 'longitude': 174.3166, 'population': 55000.0},
+{'id': 'LVN', 'name': 'Levin', 'latitude': -40.6218, 'longitude': 175.2866, 'population': 19000.0},
+{'id': 'TMZ', 'name': 'Tauranga', 'latitude': -37.687, 'longitude': 176.1654, 'population': 130000.0},
+{'id': 'TIU', 'name': 'Timaru', 'latitude': -44.3904, 'longitude': 171.2373, 'population': 28000.0},
+{'id': 'OAM', 'name': 'Oamaru', 'latitude': -45.0966, 'longitude': 170.9714, 'population': 14000.0},
+{'id': 'PUK', 'name': 'Pukekohe', 'latitude': -37.2004, 'longitude': 174.901, 'population': 27000.0},
+{'id': 'HLZ', 'name': 'Hamilton', 'latitude': -37.7826, 'longitude': 175.2528, 'population': 165000.0},
+{'id': 'LYJ', 'name': 'Lower Hutt', 'latitude': -41.2127, 'longitude': 174.8997, 'population': 112000.0}]
 
-"""
-    WLG = ["Wellington", -41.276825, 174.777969, 2e5],
-    GIS = ["Gisborne", -38.662334, 178.017654, 5e4],
-    CHC = ["Christchurch", -43.525650, 172.639847, 3e5],
-    IVC = ["Invercargill", -46.413056, 168.3475, 8e4],
-    DUD = ["Dunedin", -45.8740984, 170.5035755, 1e5],
-    NPE = ["Napier", -39.4902099, 176.917839, 8e4],
-    NPL = ["New Plymouth", -39.0579941, 174.0806474, 8e4],
-    PMR = ["Palmerston North", -40.356317, 175.6112388, 7e4],
-    NSN = ["Nelson", -41.2710849, 173.2836756, 8e4],
-    BHE = ["Blenheim", -41.5118691, 173.9545856, 5e4],
-    WHK = ["Whakatane", -37.9519223, 176.9945977, 5e4],
-    GMN = ["Greymouth", -42.4499469, 171.2079875, 3e4],
-    ZQN = ["Queenstown", -45.03, 168.66, 15e3],
-    AKL = ["Auckland", -36.848461, 174.763336, 2e6],
-    ROT = ["Rotorua", -38.1446, 176.2378, 77e3],
-    TUO = ["Taupo", -38.6843, 176.0704, 26e3],
-    WRE = ["Whangarei", -35.7275, 174.3166, 55e3],
-    LVN = ["Levin", -40.6218, 175.2866, 19e3],
-    TMZ = ["Tauranga", -37.6870, 176.1654, 130e3],
-    TIU = ['Timaru', -44.3904, 171.2373, 28e3],
-    OAM = ["Oamaru", -45.0966, 170.9714, 14e3],
-    PUK = ["Pukekohe", -37.2004, 174.9010, 27e3],
-    HLZ = ["Hamilton", -37.7826, 175.2528, 165e3],
-    LYJ = ["Lower Hutt", -41.2127, 174.8997, 112e3]
-"""
 
 @api.route('/')
 class LocationList(Resource):
@@ -64,3 +59,4 @@ class Location(Resource):
             if loc['id'] == id:
                 return loc
         api.abort(404)
+
