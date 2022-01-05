@@ -1,4 +1,4 @@
-from flask_restplus import Api
+from flask_restx import Api
 
 from .locations import api as locations
 from .solutions import api as solutions

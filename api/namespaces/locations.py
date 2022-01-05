@@ -1,6 +1,6 @@
 #!python
 
-from flask_restplus import Namespace, Resource, fields
+from flask_restx import Namespace, Resource, fields
 
 api = Namespace('locations', description='Location related operations')
 
