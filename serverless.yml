@@ -24,6 +24,7 @@ custom:
   wsgi:
     app: api.api.app
     packRequirements: false
+    pythonBin: python3
   #serverless-python-requirements settings
   pythonRequirements:
     dockerizePip: non-linux
