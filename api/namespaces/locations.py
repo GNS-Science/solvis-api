@@ -1,5 +1,4 @@
 # #!python
-
 from flask_restx import Namespace, Resource, fields
 
 locations = Namespace('locations', description='Location related operations')

@@ -1,5 +1,4 @@
-from typing_extensions import Required
-from flask_restplus import Namespace, Resource, fields
+from flask_restx import Namespace, Resource, fields
 
 api = Namespace('radii', description='Radii')
 
@@ -25,7 +24,7 @@ class RadiiById(Resource):
     @api.doc('get_one_radii')
     @api.marshal_list_with(radii_model)
     def get(self, radius):
-        '''List all radii'''
+        '''List one radii by id'''
         for rad in RADII:
             if rad['id'] == radius:
                 return rad
