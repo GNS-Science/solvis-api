@@ -1,8 +1,6 @@
 # #!python
 
-from re import L
-from typing_extensions import Required
-from flask_restplus import Namespace, Resource, fields
+from flask_restx import Namespace, Resource, fields
 
 locations = Namespace('locations', description='Location related operations')
 location_lists = Namespace('location_lists', description='Location list related operations')

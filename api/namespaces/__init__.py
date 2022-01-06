@@ -1,7 +1,8 @@
-from flask_restplus import Api
+from flask_restx import Api
 
 from .locations import locations, location_lists
 from .radii import api as radii
+from .solutions import api as solutions
 
 api = Api(
     title='Solvis API',
@@ -13,3 +14,4 @@ api = Api(
 api.add_namespace(locations)
 api.add_namespace(location_lists)
 api.add_namespace(radii)
+api.add_namespace(solutions)
