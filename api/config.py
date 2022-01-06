@@ -81,3 +81,4 @@ else:
     API_KEY = os.getenv('NZSHM22_TOSHI_API_KEY', "") 
 
 WORK_PATH = os.getenv('NZSHM22_SCRIPT_WORK_PATH', PurePath(os.getcwd(), "tmp"))
+SNS_TOPIC_ARN  = os.getenv('SNS_TOPIC_ARN')
