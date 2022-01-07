@@ -1,32 +1,62 @@
-service: solvis-api
+service: nzshm22-solvis-api
 
 plugins:
+  - serverless-offline-sns
   - serverless-python-requirements
   - serverless-wsgi
   - serverless-dynamodb-local
+
 package:
   individually: false
   exclude:
     - .git/**
+    - __pycache__/**
     - .pytest_cache/**
     - .tox/**
+    - test/**
+    - offline/**
+    - tmp/**
     - bin/**
-    - demo/**
     - lib/**
+    - .dynamodb/**
     - node_modules/**
     - prof/**
     - package.json
     - package-log.json
-    - node_modules/**
 
 custom:
+
+  # DRY constants: define all compound/generated names in one place
+  # Override args are: .. defaults:
+  # --app_acroym          signed-uploader
+  # --s3_bucket           self:custom.app_acronym
+  # --s3_key_base         self:custom.stage
+  # --region              us-east-1
+  # --stage               test
+  # --deletion_policy     delete
+
+  app_acronym: ${opt:acronym, self:service}
+  default_stage: local
+  stage: ${opt:stage, self:custom.default_stage}
+  stack_name: ${self:custom.app_acronym}-${self:custom.stage}
+  region: ${opt:region, self:provider.region}
+  #accountId: !Ref AWS::AccountId
+  deletion_policy: Delete
+  topic_name: ${self:custom.stack_name}-analyse-inversion-solution
+  #topic_arn: arn:aws:sns:${self:custom.region}:${self.custom.accountId}:${self:custom.topic_name}
+  topic_arn: arn:aws:sns:ap-southeast-2:123456789012:${self:custom.topic_name}
+  solvis_api_url: TODO-${self:custom.stage}
+
   #serverless-wsgi settings
   wsgi:
     app: api.api.app
     packRequirements: false
+    pythonBin: python3
+
   #serverless-python-requirements settings
   pythonRequirements:
     dockerizePip: non-linux
+
   dynamodb:
   # If you only want to use DynamoDB Local in some stages, declare them here
     stages:
@@ -36,30 +66,21 @@ custom:
       inMemory: true
       heapInitial: 200m
       heapMax: 1g
-      migrate: true
-      seed: true
-      convertEmptyValues: true
+      # migrate: true
+      # seed: true
+      # convertEmptyValues: true
     seed:
       domain:
         sources:
           - table: ${self:custom.stage}-solutions
             sources: [./offline/migrations/solutions-seed.json]
 
-# DRY constants: define all compound/generated names in one place
-# Override args are: .. defaults:
-# --app_acroym          signed-uploader
-# --s3_bucket           self:custom.app_acronym
-# --s3_key_base         self:custom.stage
-# --region              us-east-1
-# --stage               test
-# --deletion_policy     delete
-
-  app_acronym: ${opt:acronym, self:service}
-  default_stage: local
-  stage: ${opt:stage, self:custom.default_stage}
-  stack_name: ${self:custom.app_acronym}-${self:custom.stage}
-  region: ${opt:region, self:provider.region}
-  deletion_policy: Delete
+  serverless-offline-sns:
+    port: 4002 # a free port for the sns server to run on
+    debug: true
+    # host: 0.0.0.0 # Optional, defaults to 127.0.0.1 if not provided to serverless-offline
+    # sns-endpoint: http://127.0.0.1:4567 # Optional. Only if you want to use a custom endpoint
+    accountId: 123456789012 # Optional
 
 provider:
   name: aws
@@ -79,33 +100,16 @@ functions:
     handler: wsgi_handler.handler
     memorySize: 384 # optional, in MB, default is 1024
     timeout: 30 # optional, in seconds, default is 6
-    #events:
-      # - http:
-      #     path: graphql
-      #     method: OPTIONS
-      # - http:
-      #     path: graphql
-      #     method: POST
-      #     private: true
-      # - http:
-      #     path: graphql
-      #     method: GET
-      #     private: true
-    #environment:
+    environment:
+      SNS_TOPIC_ARN: ${self:custom.topic_arn}
 
-
-resources:
-  Resources:
-    solutionsTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: ${self:custom.stage}-solutions
-        AttributeDefinitions:
-          - AttributeName: id
-            AttributeType: S
-        KeySchema:
-          - AttributeName: id
-            KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
+  analyse-inversion-solution:
+    description: The analysis handler of ${self:service}
+    handler: api.analysis.handler
+    memorySize: 384 # optional, in MB, default is 1024
+    timeout: 300 # optional, in seconds, default is 6
+    events:
+      - sns:
+          topicName: ${self:custom.topic_name}         #${self:custom.topic_arn}
+    environment:
+      SOLVIS_API_URL: ${self:custom.solvis_api_url}

@@ -1,18 +1,18 @@
 from flask import Flask
-
-#monkey patching , see https://stackoverflow.com/a/67523704
-import werkzeug
-werkzeug.cached_property = werkzeug.utils.cached_property
-import flask.scaffold
-flask.helpers._endpoint_from_view_func = flask.scaffold._endpoint_from_view_func
-
-from flask_restplus import Api, Resource
-
 from .namespaces import api
 
+from api.model import set_local_mode, migrate
+
 app = Flask(__name__)
+# app.config.from_object(Config)
+
 api.init_app(app)
 
 
+set_local_mode() #make this pick up the config
+app.before_first_request(migrate)
+
 if __name__ == '__main__':
+    # Register table creation callback
+
     app.run()
