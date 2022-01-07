@@ -22,6 +22,7 @@
   "homepage": "https://github.com/GNS-Science/solvis-api#readme",
   "dependencies": {
     "serverless-dynamodb-local": "^0.2.40",
+    "serverless-offline-sns": "^0.76.0",
     "serverless-python-requirements": "^5.2.2",
     "serverless-wsgi": "^3.0.0"
   }
