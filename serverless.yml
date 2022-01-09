@@ -40,11 +40,11 @@ custom:
   stage: ${opt:stage, self:custom.default_stage}
   stack_name: ${self:custom.app_acronym}-${self:custom.stage}
   region: ${opt:region, self:provider.region}
-  #accountId: !Ref AWS::AccountId
+  accountId: !Ref AWS::AccountId
   deletion_policy: Delete
   topic_name: ${self:custom.stack_name}-analyse-inversion-solution
-  #topic_arn: arn:aws:sns:${self:custom.region}:${self.custom.accountId}:${self:custom.topic_name}
-  topic_arn: arn:aws:sns:ap-southeast-2:123456789012:${self:custom.topic_name}
+  topic_arn: arn:aws:sns:${self:custom.region}:${self.custom.accountId}:${self:custom.topic_name}
+  #topic_arn: arn:aws:sns:ap-southeast-2:123456789012:${self:custom.topic_name}
   solvis_api_url: TODO-${self:custom.stage}
 
   #serverless-wsgi settings
@@ -56,6 +56,11 @@ custom:
   #serverless-python-requirements settings
   pythonRequirements:
     dockerizePip: non-linux
+    slim: true
+    slimPatterns:
+      - '**/*.egg-info*'
+    noDeploy:
+      - botocore
 
   dynamodb:
   # If you only want to use DynamoDB Local in some stages, declare them here
@@ -91,7 +96,7 @@ provider:
     REGION: ${self:custom.region}
 
   apiKeys:
-    - name: TempApiKey-${self:custom.stage}
+    - name: TempApiKey-${self:custom.stack_name}
       description: Api key until we have an auth function # Optional
 
 functions:
@@ -99,9 +104,24 @@ functions:
     description: The REST API of ${self:service}
     handler: wsgi_handler.handler
     memorySize: 384 # optional, in MB, default is 1024
-    timeout: 30 # optional, in seconds, default is 6
+    #timeout: 5 # optional, in seconds, default is 6
     environment:
       SNS_TOPIC_ARN: ${self:custom.topic_arn}
+      LOCAL_MODE: LOCAL #LOCAL or AWS
+    events:
+      - httpApi: '*'
+      # - http:
+      #     path: 'api/*'
+      #     method: OPTIONS
+      # - http:
+      #     path: 'api/*'
+      #     method: POST
+      #     private: true
+      # - http:
+      #     path: 'api/*'
+      #     method: GET
+      #     private: true
+
 
   analyse-inversion-solution:
     description: The analysis handler of ${self:service}

@@ -8,7 +8,7 @@ from flask_restx import Namespace, Resource, fields
 from api.toshi_api.toshi_api import ToshiApi
 
 # Set up your local config, from environment variables, with some sone defaults
-from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL, SNS_TOPIC_ARN)
+from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL, SNS_TOPIC_ARN, LOCAL_MODE)
 from api.solvis import multi_city_events
 
 import pandas as pd
@@ -65,8 +65,11 @@ class SolutionAnalysisList(Resource):
         #TODO error handling here...
         solution = toshi_api.inversion_solution.get_file_download_url(solution_id)
 
-        AWS_REGION = 'ap-southeast-2'
-        client = boto3.client('sns', endpoint_url="http://127.0.0.1:4002", region_name=AWS_REGION)
+        if LOCAL_MODE:
+            AWS_REGION = 'ap-southeast-2'
+            client = boto3.client('sns', endpoint_url="http://127.0.0.1:4002", region_name=AWS_REGION)
+        else:
+            client = boto3.client('sns')
 
         log.debug(f"SNS_TOPIC_ARN {SNS_TOPIC_ARN}")
         response = client.publish (
