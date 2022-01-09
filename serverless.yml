@@ -46,6 +46,7 @@ custom:
   topic_arn: arn:aws:sns:${self:custom.region}:${self.custom.accountId}:${self:custom.topic_name}
   #topic_arn: arn:aws:sns:ap-southeast-2:123456789012:${self:custom.topic_name}
   solvis_api_url: TODO-${self:custom.stage}
+  http_api_path: /${self.custom.stage}
 
   #serverless-wsgi settings
   wsgi:
@@ -107,20 +108,32 @@ functions:
     #timeout: 5 # optional, in seconds, default is 6
     environment:
       SNS_TOPIC_ARN: ${self:custom.topic_arn}
-      LOCAL_MODE: LOCAL #LOCAL or AWS
+      LOCAL_MODE: AWS #LOCAL or AWS
     events:
-      - httpApi: '*'
-      # - http:
-      #     path: 'api/*'
-      #     method: OPTIONS
-      # - http:
-      #     path: 'api/*'
-      #     method: POST
-      #     private: true
-      # - http:
-      #     path: 'api/*'
-      #     method: GET
-      #     private: true
+      # - httpApi:
+      #     method: '*'
+      #     path: '*'
+      #'*'
+      - http:
+          path: locations
+          method: GET
+          private: true
+      - http:
+          path: locations/{id}
+          method: GET
+          private: true
+          request:
+            parameters:
+              paths:
+                id: false
+      - http:
+          path: radii
+          method: GET
+          private: true
+      - http:
+          path: doc
+          method: GET
+          private: true
 
 
   analyse-inversion-solution:
