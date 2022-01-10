@@ -18,6 +18,8 @@ import urllib.parse
 from botocore.exceptions import ClientError
 import json
 
+import solvis
+
 def get_secret(secret_name, region_name):
 
     # Create a Secrets Manager client
@@ -89,3 +91,8 @@ WORK_PATH = os.getenv('NZSHM22_SCRIPT_WORK_PATH', PurePath(os.getcwd(), "tmp"))
 SNS_TOPIC_ARN  = os.getenv('SNS_TOPIC_ARN')
 
 LOCAL_MODE = EnvMode[os.getenv('LOCAL_MODE','LOCAL')] #Wase True/False now EnvMode: LOCAL, CLUSTER, AWS
+
+if LOCAL_MODE == 1:
+    SOLVIS_API_URL = 'http://localhost:5000'
+else:
+    SOLVIS_API_URL = os.getenv('NZSHM22_SOLVIS_API_URL', 'https://ly86h01a86.execute-api.ap-southeast-2.amazonaws.com/dev/')

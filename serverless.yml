@@ -47,6 +47,7 @@ custom:
   #topic_arn: arn:aws:sns:ap-southeast-2:123456789012:${self:custom.topic_name}
   solvis_api_url: TODO-${self:custom.stage}
   http_api_path: /${self.custom.stage}
+  API_ENDPOINT: ${env:NZSHM22_SOLVIS_API_URL}
 
   #serverless-wsgi settings
   wsgi:
