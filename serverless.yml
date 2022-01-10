@@ -95,6 +95,13 @@ provider:
   region: ap-southeast-2
   environment:
     REGION: ${self:custom.region}
+  iamRoleStatements:
+    -  Effect: "Allow"
+       Action:
+         - "dynamodb:Scan"
+         - "dynamodb:DescribeTable"
+         - "dynamodb:CreateTable"
+       Resource: "*"
 
   apiKeys:
     - name: TempApiKey-${self:custom.stack_name}
@@ -110,30 +117,32 @@ functions:
       SNS_TOPIC_ARN: ${self:custom.topic_arn}
       LOCAL_MODE: AWS #LOCAL or AWS
     events:
+      - http: ANY /
+      - http: 'ANY {proxy+}'
       # - httpApi:
       #     method: '*'
       #     path: '*'
       #'*'
-      - http:
-          path: locations
-          method: GET
-          private: true
-      - http:
-          path: locations/{id}
-          method: GET
-          private: true
-          request:
-            parameters:
-              paths:
-                id: false
-      - http:
-          path: radii
-          method: GET
-          private: true
-      - http:
-          path: doc
-          method: GET
-          private: true
+      # - http:
+      #     path: locations
+      #     method: GET
+      #     private: true
+      # - http:
+      #     path: locations/{id}
+      #     method: GET
+      #     private: true
+      #     request:
+      #       parameters:
+      #         paths:
+      #           id: false
+      # - http:
+      #     path: radii
+      #     method: GET
+      #     private: true
+      # - http:
+      #     path: doc
+      #     method: GET
+      #     private: true
 
 
   analyse-inversion-solution:
