@@ -13,6 +13,7 @@ from pathlib import PurePath
 
 import boto3
 import base64
+import enum
 import urllib.parse
 from botocore.exceptions import ClientError
 import json
@@ -64,6 +65,10 @@ def get_secret(secret_name, region_name):
             return base64.b64decode(get_secret_value_response['SecretBinary'])
 
 
+class EnvMode(enum.IntEnum):
+    AWS = 0
+    LOCAL = 1
+
 def boolean_env(environ_name):
     return bool(os.getenv(environ_name, '').upper() in ["1", "Y", "YES", "TRUE"])
 
@@ -82,3 +87,5 @@ else:
 
 WORK_PATH = os.getenv('NZSHM22_SCRIPT_WORK_PATH', PurePath(os.getcwd(), "tmp"))
 SNS_TOPIC_ARN  = os.getenv('SNS_TOPIC_ARN')
+
+LOCAL_MODE = EnvMode[os.getenv('LOCAL_MODE','LOCAL')] #Wase True/False now EnvMode: LOCAL, CLUSTER, AWS

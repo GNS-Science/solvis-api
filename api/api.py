@@ -1,18 +1,30 @@
-from flask import Flask
-from .namespaces import api
+from flask import Flask, request
+from .namespaces import api#, blueprint
 
 from api.model import set_local_mode, migrate
+from api.config import LOCAL_MODE
 
 app = Flask(__name__)
-# app.config.from_object(Config)
+
+#app.register_blueprint(blueprint)
+
+#app.config["APPLICATION_ROOT"] = "/spam"
 
 api.init_app(app)
 
+if LOCAL_MODE:
+    set_local_mode()
 
-set_local_mode() #make this pick up the config
 app.before_first_request(migrate)
 
-if __name__ == '__main__':
-    # Register table creation callback
+@app.before_request
+def hook():
+    # request - flask.request
+    print('before_request endpoint: %s, url: %s, path: %s' % (
+        request.endpoint,
+        request.url,
+        request.path))
+    # just do here everything what you need...
 
+if __name__ == '__main__':
     app.run()
