@@ -119,30 +119,7 @@ functions:
     events:
       - http: ANY /
       - http: 'ANY {proxy+}'
-      # - httpApi:
-      #     method: '*'
-      #     path: '*'
-      #'*'
-      # - http:
-      #     path: locations
-      #     method: GET
-      #     private: true
-      # - http:
-      #     path: locations/{id}
-      #     method: GET
-      #     private: true
-      #     request:
-      #       parameters:
-      #         paths:
-      #           id: false
-      # - http:
-      #     path: radii
-      #     method: GET
-      #     private: true
-      # - http:
-      #     path: doc
-      #     method: GET
-      #     private: true
+
 
 
   analyse-inversion-solution:
