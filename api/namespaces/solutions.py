@@ -100,9 +100,7 @@ class SolutionAnalysis(Resource):
             pickle_bytes = io.BytesIO()
             pickle_bytes.write(result.dataframe)
             pickle_bytes.seek(0)
-            print('pre', result.__dir__)
             result.dataframe = pd.read_pickle(pickle_bytes, 'zip').to_json(indent=2)
-            print('post', result.__dir__)
         except (SolutionLocationsRadiiDF.DoesNotExist):
             api.abort(404)
         return result

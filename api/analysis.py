@@ -68,7 +68,5 @@ def process_event(evt):
 
 def handler(event, context):
 
-        print("event", event)
-
         for evt in event['Records']:
             process_event(evt)
