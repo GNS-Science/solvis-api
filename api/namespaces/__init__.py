@@ -1,11 +1,13 @@
-from flask_restx import Api
+from flask_restx import Api, Namespace
 
 from flask import Blueprint
 from flask import request
 
 from .locations import locations, location_lists
 from .radii import api as radii
-from .solutions import api as solutions
+from .solutions import api as solution_analysis
+#from .solution_analysis_geojson import api as solution_analysis_geojson
+
 
 #blueprint = Blueprint('api', __name__, url_prefix='/')
 
@@ -81,7 +83,13 @@ api = Api(default='',
     catch_all_404s=True
 )
 
+# sol_ns = Api()#"Solutions", path="/sol")
+# #Api(title='Solution analysis Geojson', default='sol')
+# sol_ns.add_namespace(solution_analysis_geojson)
+# sol_ns.add_namespace(solution_analysis)
+
 api.add_namespace(locations)
 api.add_namespace(location_lists)
 api.add_namespace(radii)
-api.add_namespace(solutions)
+api.add_namespace(solution_analysis)
+#api.add_namespace(solution_analysis_geojson)
