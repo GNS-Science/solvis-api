@@ -134,6 +134,7 @@ geojson_rupture_model = api.model('Geojson Layer', dict(
     rupture_id = fields.Integer(required=True),
     layer_name = fields.String(required=True),
     magnitude = fields.Float(),
+    section_count = fields.Integer(),
     length = fields.Float(),
     annual_rate = fields.Float(),
     area = fields.Float(),
@@ -151,15 +152,27 @@ solution_analysis_ruptures_geojson_model = api.model('Solution Analysis Geojson'
         description='list of geojson models, one per rupture')
 ))
 
-def get_rupture_geojsons(solution, filtered_df, rupture_idxs):
+# def get_rupture_geojsons(solution, filtered_df, rupture_idxs):
+#     layers = []
+#     #print(filtered_df)
+#     for r in rupture_idxs:
+#         #print(r)
+#         #print(filtered_df[(filtered_df['Rupture Index']==r)])
+#         sp0 = section_participation(solution, [r,])
+#         #print(sp0)
+#         layers.append(dict(rupture_id=str(r), layer_name=str(r), geojson=gpd.GeoDataFrame(sp0).to_json()))
+#     return layers
+
+def get_rupture_geojsons(solution, filtered_df):
     layers = []
-    print(filtered_df)
-    for r in rupture_idxs:
-        print(r)
-        print(filtered_df[(filtered_df['Rupture Index']==r)])
-        sp0 = section_participation(solution, [r,])
-        print(sp0)
-        layers.append(dict(rupture_id=str(r), layer_name=str(r), geojson=gpd.GeoDataFrame(sp0).to_json()))
+    #print(filtered_df)
+    for row in filtered_df.itertuples():
+        rupt = dict(rupture_id=row[0], magnitude=row[4], area=row[6], length=row[7], annual_rate=row._8)
+        sp0 = section_participation(solution, [rupt['rupture_id'],])
+        rupt['geojson'] = gpd.GeoDataFrame(sp0).to_json()
+        rupt['layer_name'] = f"{sp0['FaultName'].values[0]} to {sp0['FaultName'].values[1]}"
+        rupt['section_count'] = sp0['FaultName'].size
+        layers.append(rupt)
     return layers
 
 @api.route('/<string:sa_id>/loc/<string:location_id>/rad/<int:radius_km>/ruptures/geojson')
@@ -188,15 +201,14 @@ class SolutionAnalysisGeojsonRuptures(Resource):
         result = get_solution_dataframe_result(sa_id) #cached
         sol = get_inversion_solution(result.solution_id) #cached
 
-        #apply filters, build a ne solution, extract layers by
+        #apply filters, build a new solution, extract rupture geojson
         rupture_df = get_filtered_ruptures(sa_id, location_id, radius_km, annual_rate_threshold)
         rupture_idxs = list(rupture_df['Rupture Index'])
         filtered_solution = new_sol(sol, rupture_idxs)
-        layers = get_rupture_geojsons(filtered_solution, rupture_df, rupture_idxs)
 
         result.location_id = location_id
         result.radius_km = radius_km
-        result.rupture_count = len(layers)
-        result.ruptures = layers
+        result.ruptures = get_rupture_geojsons(filtered_solution, rupture_df)
+        result.rupture_count = len(result.ruptures)
         return result
 
