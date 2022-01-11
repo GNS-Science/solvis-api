@@ -1,5 +1,5 @@
 
-from pynamodb.attributes import UnicodeAttribute, JSONAttribute, UTCDateTimeAttribute
+from pynamodb.attributes import UnicodeAttribute, JSONAttribute, UTCDateTimeAttribute, BinaryAttribute
 from pynamodb.models import Model
 from datetime import datetime
 
@@ -24,7 +24,7 @@ class SolutionLocationsRadiiDF(Model):
     radii_list_id = UnicodeAttribute()
     created = UTCDateTimeAttribute(default=datetime.now)
 
-    dataframe = JSONAttribute()
+    dataframe = BinaryAttribute()
 
 def set_local_mode():
     SolutionLocationsRadiiDF.Meta.host = "http://localhost:8000"

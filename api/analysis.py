@@ -2,20 +2,23 @@ import json
 from api.toshi_api.toshi_api import ToshiApi
 
 # Set up your local config, from environment variables, with some sone defaults
-from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL)
+from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL, SOLVIS_API_URL)
 from api.solvis import multi_city_events
 from api.model import SolutionLocationsRadiiDF
 from api.model import set_local_mode
 
 import pandas as pd
+import io
+import requests
 from solvis import InversionSolution
 
 headers={"x-api-key":API_KEY}
 toshi_api = ToshiApi(API_URL, S3_URL, None, with_schema_validation=False, headers=headers)
 
-set_local_mode()
+# set_local_mode()
 
 def process_event(evt):
+    # print(evt)
     message = json.loads(evt['Sns']['Message'])
 
     _id = message['id']
@@ -23,7 +26,7 @@ def process_event(evt):
     radii_list_id = message['radii_list_id']
     locations_list_id = message['locations_list_id']
 
-    WORK_PATH = "./tmp"
+    # WORK_PATH = "/tmp"
     #fetch the solution
     filename = toshi_api.inversion_solution.download_inversion_solution(solution_id, WORK_PATH)
     solution = InversionSolution().from_archive(filename)
@@ -32,26 +35,6 @@ def process_event(evt):
     cities = dict(
         WLG = ["Wellington", -41.276825, 174.777969, 2e5],
         GIS = ["Gisborne", -38.662334, 178.017654, 5e4],
-        # CHC = ["Christchurch", -43.525650, 172.639847, 3e5],
-        # IVC = ["Invercargill", -46.413056, 168.3475, 8e4],
-        # DUD = ["Dunedin", -45.8740984, 170.5035755, 1e5],
-        # NPE = ["Napier", -39.4902099, 176.917839, 8e4],
-        # NPL = ["New Plymouth", -39.0579941, 174.0806474, 8e4],
-        # PMR = ["Palmerston North", -40.356317, 175.6112388, 7e4],
-        # NSN = ["Nelson", -41.2710849, 173.2836756, 8e4],
-        # BHE = ["Blenheim", -41.5118691, 173.9545856, 5e4],
-        # WHK = ["Whakatane", -37.9519223, 176.9945977, 5e4],
-        # GMN = ["Greymouth", -42.4499469, 171.2079875, 3e4],
-        # ZQN = ["Queenstown", -45.03, 168.66, 15e3],
-        # AKL = ["Auckland", -36.848461, 174.763336, 2e6],
-        # ROT = ["Rotorua", -38.1446, 176.2378, 77e3],
-        # TUO = ["Taupo", -38.6843, 176.0704, 26e3],
-        # WRE = ["Whangarei", -35.7275, 174.3166, 55e3],
-        # LVN = ["Levin", -40.6218, 175.2866, 19e3],
-        # TMZ = ["Tauranga", -37.6870, 176.1654, 130e3],
-        # TIU = ['Timaru', -44.3904, 171.2373, 28e3],
-        # OAM = ["Oamaru", -45.0966, 170.9714, 14e3],
-        # PUK = ["Pukekohe", -37.2004, 174.9010, 27e3],
         HLZ = ["Hamilton", -37.7826, 175.2528, 165e3],
         LYJ = ["Lower Hutt", -41.2127, 174.8997, 112e3]
     )
@@ -69,15 +52,17 @@ def process_event(evt):
 
     # print(df)
     ruptures = df.join(solution.ruptures_with_rates)
-    print(ruptures)
-
+    binary_frame = io.BytesIO()
+    ruptures.to_pickle(binary_frame, 'zip')
+    binary_frame.seek(0)
+    
     ##Save the dataframe
     dataframe = SolutionLocationsRadiiDF(
         id = _id,
         solution_id = solution_id,
         locations_list_id = locations_list_id,
         radii_list_id =  radii_list_id,
-        dataframe = ruptures.to_json(indent=2))
+        dataframe = binary_frame.getvalue())
 
     dataframe.save()
 

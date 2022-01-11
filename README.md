@@ -20,4 +20,6 @@ sls wsgi serve
 ```
 
 ### Run
-sls dynamodb start --stage dev & sls offline-sns start & sls wsgi serve
+sls dynamodb start --stage dev &
+sls offline-sns start &
+sls wsgi serve

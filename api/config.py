@@ -21,12 +21,14 @@ import json
 import solvis
 
 def get_secret(secret_name, region_name):
-
+    
+    print(secret_name, region_name)
     # Create a Secrets Manager client
     session = boto3.session.Session()
     client = session.client(
         service_name='secretsmanager',
-        region_name=region_name
+        region_name=region_name,
+        
     )
 
     # In this sample we only handle the specific exceptions for the 'GetSecretValue' API.
@@ -79,15 +81,15 @@ USE_API = boolean_env('NZSHM22_TOSHI_API_ENABLED')
 API_URL  = os.getenv('NZSHM22_TOSHI_API_URL', "http://127.0.0.1:5000/graphql")
 S3_URL = os.getenv('NZSHM22_TOSHI_S3_URL',"http://localhost:4569")
 
-#Get API key from AWS secrets manager
-if USE_API and 'TEST' in API_URL.upper():
-    API_KEY = get_secret("NZSHM22_TOSHI_API_SECRET_TEST", "us-east-1").get("NZSHM22_TOSHI_API_KEY_TEST")
-elif USE_API and 'PROD' in API_URL.upper():
-    API_KEY = get_secret("NZSHM22_TOSHI_API_SECRET_PROD", "us-east-1").get("NZSHM22_TOSHI_API_KEY_PROD")
-else:
-    API_KEY = os.getenv('NZSHM22_TOSHI_API_KEY', "") 
+# #Get API key from AWS secrets manager
+# if USE_API and 'TEST' in API_URL.upper():
+#     API_KEY = get_secret("NZSHM22_TOSHI_API_SECRET_TEST", "ap-southeast-2").get("NZSHM22_TOSHI_API_SECRET_TEST")
+# elif USE_API and 'PROD' in API_URL.upper():
+#     API_KEY = get_secret("NZSHM22_TOSHI_API_SECRET_PROD", "us-east-1").get("NZSHM22_TOSHI_API_KEY_PROD")
+# else:
+API_KEY = os.getenv('NZSHM22_TOSHI_API_KEY', "") 
 
-WORK_PATH = os.getenv('NZSHM22_SCRIPT_WORK_PATH', PurePath(os.getcwd(), "tmp"))
+WORK_PATH = os.getenv('NZSHM22_SCRIPT_WORK_PATH', "/tmp")
 SNS_TOPIC_ARN  = os.getenv('SNS_TOPIC_ARN')
 
 LOCAL_MODE = EnvMode[os.getenv('LOCAL_MODE','LOCAL')] #Wase True/False now EnvMode: LOCAL, CLUSTER, AWS
