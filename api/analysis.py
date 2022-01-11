@@ -50,11 +50,11 @@ def process_event(evt):
     df = pd.DataFrame.from_dict(rupture_radius_site_sets, orient='index')
     df = df.rename(columns=dict(zip(radii, [f'r{int(r/1000)}km' for r in radii])))
 
-    # print(df)
     ruptures = df.join(solution.ruptures_with_rates)
     binary_frame = io.BytesIO()
     ruptures.to_pickle(binary_frame, 'zip')
     binary_frame.seek(0)
+    print('pickle size:', binary_frame.getbuffer().nbytes)
     
     ##Save the dataframe
     dataframe = SolutionLocationsRadiiDF(
