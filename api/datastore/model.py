@@ -10,7 +10,6 @@ log = logging.getLogger("pynamodb")
 log.setLevel(logging.DEBUG)
 log.propagate = True
 
-
 class SolutionLocationsRadiiDF(Model):
     class Meta:
         read_capacity_units = 10

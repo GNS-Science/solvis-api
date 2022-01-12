@@ -3,30 +3,34 @@
 import json
 import io
 import boto3
+import logging
+
+from functools import lru_cache
 from uuid import uuid4
 
+from flask_restx import reqparse
 from flask_restx import Namespace, Resource, fields
 from pandas.io import pickle
 from api.toshi_api.toshi_api import ToshiApi
 
-# Set up your local config, from environment variables, with some sone defaults
-from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL, SNS_TOPIC_ARN, LOCAL_MODE)
+from api.config import (API_KEY, API_URL, S3_URL, SNS_TOPIC_ARN, IS_OFFLINE)
 from api.solvis import multi_city_events
 
 import pandas as pd
-from solvis import InversionSolution
+import geopandas as gpd
+from solvis import InversionSolution, new_sol, section_participation
+# from api.model import SolutionLocationsRadiiDF
 
-import logging
+from api.namespaces.solution_analysis_geojson import get_solution_dataframe_result
+from api.namespaces.solution_analysis_geojson import api
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
-api = Namespace('solutions', description='Solution analysis related operations')
+from api.datastore.datastore import get_ds
 
 headers={"x-api-key":API_KEY}
 toshi_api = ToshiApi(API_URL, S3_URL, None, with_schema_validation=False, headers=headers)
-
-from api.model import SolutionLocationsRadiiDF
 
 #need to keep this in sync with pynamodb model.SolutionLocationsRadiiDF. Must be a better way
 solution_analysis_model = api.model('Solution Analysis', dict(
@@ -44,7 +48,9 @@ class SolutionAnalysisList(Resource):
     @api.marshal_list_with(solution_analysis_model)
     def get(self):
         '''List all solution'''
-        return [x for x in SolutionLocationsRadiiDF.scan(
+        datastore = get_ds()
+        solutions = datastore.resources.solutions
+        return [x for x in solutions.scan(
             attributes_to_get=["id", "solution_id", "locations_list_id", "radii_list_id", "created"]
             )]
 
@@ -67,7 +73,7 @@ class SolutionAnalysisList(Resource):
         #TODO error handling here...
         solution = toshi_api.inversion_solution.get_file_download_url(solution_id)
 
-        if LOCAL_MODE:
+        if IS_OFFLINE:
             AWS_REGION = 'ap-southeast-2'
             client = boto3.client('sns', endpoint_url="http://127.0.0.1:4002", region_name=AWS_REGION)
         else:
@@ -88,20 +94,19 @@ class SolutionAnalysisList(Resource):
         return api.payload
 
 
-@api.route('/<id>')
-@api.param('id', 'The solution analysis identifier')
+@api.route('/<sa_id>')
+@api.param('sa_id', 'The solution analysis identifier')
 @api.response(404, 'solution analysis not found')
 class SolutionAnalysis(Resource):
+    """
+    SolutionAnalysis handlers
+    """
     @api.doc('get_solution_analysis ')
     @api.marshal_with(solution_analysis_model)
-    def get(self, id):
-        try:
-            result = SolutionLocationsRadiiDF.get(id) #     5cd8df26-2370-4bbb-8e3d-03e6453e0c65
-            pickle_bytes = io.BytesIO()
-            pickle_bytes.write(result.dataframe)
-            pickle_bytes.seek(0)
-            result.dataframe = pd.read_pickle(pickle_bytes, 'zip').to_json(indent=2)
-        except (SolutionLocationsRadiiDF.DoesNotExist):
-            api.abort(404)
-        return result
+
+    def get(self, sa_id):
+        """
+        GET handler
+        """
+        return get_solution_dataframe_result(sa_id)
 

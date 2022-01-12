@@ -2,10 +2,10 @@ import json
 from api.toshi_api.toshi_api import ToshiApi
 
 # Set up your local config, from environment variables, with some sone defaults
-from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL, SOLVIS_API_URL)
+from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL, SOLVIS_API_URL, IS_OFFLINE)
 from api.solvis import multi_city_events
-from api.model import SolutionLocationsRadiiDF
-from api.model import set_local_mode
+from api.datastore.model import SolutionLocationsRadiiDF,  set_local_mode
+
 
 import pandas as pd
 import io
@@ -15,7 +15,10 @@ from solvis import InversionSolution
 headers={"x-api-key":API_KEY}
 toshi_api = ToshiApi(API_URL, S3_URL, None, with_schema_validation=False, headers=headers)
 
-# set_local_mode()
+if IS_OFFLINE:
+    set_local_mode()
+else:
+    assert 0
 
 def process_event(evt):
     # print(evt)
