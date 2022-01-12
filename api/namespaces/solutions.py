@@ -1,10 +1,12 @@
 #!python
 
 import json
+import io
 import boto3
 from uuid import uuid4
 
 from flask_restx import Namespace, Resource, fields
+from pandas.io import pickle
 from api.toshi_api.toshi_api import ToshiApi
 
 # Set up your local config, from environment variables, with some sone defaults
@@ -33,7 +35,7 @@ solution_analysis_model = api.model('Solution Analysis', dict(
     locations_list_id = fields.String(required=True, description='The locations_list ID (see /location_lists)'),
     radii_list_id = fields.String(required=True, description='The radii_list ID (see /radii_lists)'),
     created = fields.DateTime(description='The created timestamp'),
-    dataframe = fields.String(description='The dataframe in JSON, only availble with filter or single get')
+    dataframe = fields.String(description='The dataframe in json, only availble with filter or single get')
 ))
 
 @api.route('/')
@@ -95,6 +97,10 @@ class SolutionAnalysis(Resource):
     def get(self, id):
         try:
             result = SolutionLocationsRadiiDF.get(id) #     5cd8df26-2370-4bbb-8e3d-03e6453e0c65
+            pickle_bytes = io.BytesIO()
+            pickle_bytes.write(result.dataframe)
+            pickle_bytes.seek(0)
+            result.dataframe = pd.read_pickle(pickle_bytes, 'zip').to_json(indent=2)
         except (SolutionLocationsRadiiDF.DoesNotExist):
             api.abort(404)
         return result

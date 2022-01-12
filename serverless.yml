@@ -1,4 +1,5 @@
 service: nzshm22-solvis-api
+variablesResolutionMode: 20210326
 
 plugins:
   - serverless-offline-sns
@@ -40,13 +41,13 @@ custom:
   stage: ${opt:stage, self:custom.default_stage}
   stack_name: ${self:custom.app_acronym}-${self:custom.stage}
   region: ${opt:region, self:provider.region}
-  accountId: !Ref AWS::AccountId
   deletion_policy: Delete
   topic_name: ${self:custom.stack_name}-analyse-inversion-solution
-  topic_arn: arn:aws:sns:${self:custom.region}:${self.custom.accountId}:${self:custom.topic_name}
+  topic_arn: arn:aws:sns:${self:custom.region}:${aws:accountId}:${self:custom.topic_name}
   #topic_arn: arn:aws:sns:ap-southeast-2:123456789012:${self:custom.topic_name}
   solvis_api_url: TODO-${self:custom.stage}
   http_api_path: /${self.custom.stage}
+
 
   #serverless-wsgi settings
   wsgi:
@@ -101,6 +102,9 @@ provider:
          - "dynamodb:Scan"
          - "dynamodb:DescribeTable"
          - "dynamodb:CreateTable"
+         - "dynamodb:GetItem"
+         - "dynamodb:PutItem"
+         - "SNS:Publish"
        Resource: "*"
 
   apiKeys:
@@ -116,6 +120,11 @@ functions:
     environment:
       SNS_TOPIC_ARN: ${self:custom.topic_arn}
       LOCAL_MODE: AWS #LOCAL or AWS
+      API_ENDPOINT: ${env:NZSHM22_SOLVIS_API_URL}
+      NZSHM22_TOSHI_API_URL: ${env:NZSHM22_TOSHI_API_URL}
+      NZSHM22_TOSHI_API_ENABLED: ${env:NZSHM22_TOSHI_API_ENABLED}
+      NZSHM22_TOSHI_API_KEY: ${env:NZSHM22_TOSHI_API_KEY}
+      NZSHM22_TOSHI_S3_URL: ${env:NZSHM22_TOSHI_S3_URL}
     events:
       - http: ANY /
       - http: 'ANY {proxy+}'
@@ -124,11 +133,16 @@ functions:
 
   analyse-inversion-solution:
     description: The analysis handler of ${self:service}
-    handler: api.analysis.handler
-    memorySize: 384 # optional, in MB, default is 1024
-    timeout: 300 # optional, in seconds, default is 6
+    handler: api/analysis.handler
+    memorySize: 2048 # optional, in MB, default is 1024
+    timeout: 900 # optional, in seconds, default is 6
     events:
       - sns:
           topicName: ${self:custom.topic_name}         #${self:custom.topic_arn}
     environment:
       SOLVIS_API_URL: ${self:custom.solvis_api_url}
+      NZSHM22_TOSHI_API_URL: ${env:NZSHM22_TOSHI_API_URL}
+      NZSHM22_TOSHI_API_ENABLED: ${env:NZSHM22_TOSHI_API_ENABLED}
+      NZSHM22_TOSHI_API_KEY: ${env:NZSHM22_TOSHI_API_KEY}
+      NZSHM22_TOSHI_S3_URL: ${env:NZSHM22_TOSHI_S3_URL}
+      
