@@ -1,5 +1,6 @@
 #!python
 
+import io
 from functools import lru_cache
 import pandas as pd
 import geopandas as gpd
@@ -40,15 +41,15 @@ def get_solution_dataframe_result(_id):
     solutions = datastore.resources.solutions
     try:
         log.info(f'get_solution_dataframe_result: {_id}')
-        result = solutions.get(id) #     5cd8df26-2370-4bbb-8e3d-03e6453e0c65
+        result = solutions.get(_id) #     5cd8df26-2370-4bbb-8e3d-03e6453e0c65
 
-        # pickle_bytes = io.BytesIO()
-        # pickle_bytes.write(result.dataframe)
-        # pickle_bytes.seek(0)
+        pickle_bytes = io.BytesIO()
+        pickle_bytes.write(result.dataframe)
+        pickle_bytes.seek(0)
 
-        result.dataframe = pd.read_pickle(result.dataframe, 'zip').to_json(indent=2)
+        result.dataframe = pd.read_pickle(pickle_bytes, 'zip').to_json(indent=2)
 
-        return solutions.get(_id)
+        return result
     except (solutions.DoesNotExist):
         api.abort(404)
 

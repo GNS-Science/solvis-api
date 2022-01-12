@@ -87,7 +87,7 @@ custom:
     debug: true
     # host: 0.0.0.0 # Optional, defaults to 127.0.0.1 if not provided to serverless-offline
     # sns-endpoint: http://127.0.0.1:4567 # Optional. Only if you want to use a custom endpoint
-    accountId: 123456789012 # Optional
+    accountId: ${aws:accountId} #23456789012 # Optional
 
 provider:
   name: aws
@@ -143,4 +143,5 @@ functions:
       NZSHM22_TOSHI_API_ENABLED: ${env:NZSHM22_TOSHI_API_ENABLED}
       NZSHM22_TOSHI_API_KEY: ${env:NZSHM22_TOSHI_API_KEY}
       NZSHM22_TOSHI_S3_URL: ${env:NZSHM22_TOSHI_S3_URL}
+      IS_OFFLINE: ${env:SLS_OFFLINE}
 
