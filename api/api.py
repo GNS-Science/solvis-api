@@ -1,30 +1,45 @@
-from flask import Flask, request
+import logging
+from flask import Flask, g, request
 from .namespaces import api#, blueprint
 
-from api.model import set_local_mode, migrate
-from api.config import LOCAL_MODE
+from api.datastore import model
+from api.config import IS_OFFLINE
 
-app = Flask(__name__)
+from api.datastore.datastore import get_datastore
 
-#app.register_blueprint(blueprint)
+def create_app():
+    """
+    Function that creates our Flask application.
+    This function creates the Flask app, Flask-RESTful API,
 
-#app.config["APPLICATION_ROOT"] = "/spam"
+    :param locations_data_module: module path
+    :return: Initialized Flask app
+    """
 
-api.init_app(app)
+    logging.basicConfig(level=logging.DEBUG)
+    log = logging.getLogger(__name__)
 
-if LOCAL_MODE:
-    set_local_mode()
+    app = Flask(__name__)
+    api.init_app(app)
 
-app.before_first_request(migrate)
+    #set up the datastore config
+    datastore = get_datastore()
 
-@app.before_request
-def hook():
-    # request - flask.request
-    print('before_request endpoint: %s, url: %s, path: %s' % (
-        request.endpoint,
-        request.url,
-        request.path))
-    # just do here everything what you need...
+    if IS_OFFLINE:
+        model.set_local_mode()
 
-if __name__ == '__main__':
-    app.run()
+    app.before_first_request(model.migrate)
+
+    @app.before_request
+    def hook():
+        log.info('before_request endpoint: %s, url: %s, path: %s' % (
+            request.endpoint,
+            request.url,
+            request.path))
+
+    return app
+
+app = create_app()
+
+if __name__ == "__main__":
+    app.run(debug=True)

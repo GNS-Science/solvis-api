@@ -21,14 +21,14 @@ import json
 import solvis
 
 def get_secret(secret_name, region_name):
-    
+
     print(secret_name, region_name)
     # Create a Secrets Manager client
     session = boto3.session.Session()
     client = session.client(
         service_name='secretsmanager',
         region_name=region_name,
-        
+
     )
 
     # In this sample we only handle the specific exceptions for the 'GetSecretValue' API.
@@ -87,14 +87,14 @@ S3_URL = os.getenv('NZSHM22_TOSHI_S3_URL',"http://localhost:4569")
 # elif USE_API and 'PROD' in API_URL.upper():
 #     API_KEY = get_secret("NZSHM22_TOSHI_API_SECRET_PROD", "us-east-1").get("NZSHM22_TOSHI_API_KEY_PROD")
 # else:
-API_KEY = os.getenv('NZSHM22_TOSHI_API_KEY', "") 
+API_KEY = os.getenv('NZSHM22_TOSHI_API_KEY', "")
 
 WORK_PATH = os.getenv('NZSHM22_SCRIPT_WORK_PATH', "/tmp")
 SNS_TOPIC_ARN  = os.getenv('SNS_TOPIC_ARN')
 
-LOCAL_MODE = EnvMode[os.getenv('LOCAL_MODE','LOCAL')] #Wase True/False now EnvMode: LOCAL, CLUSTER, AWS
+IS_OFFLINE = os.getenv('IS_OFFLINE', 0) #set by serverless-wsgi plugin
 
-if LOCAL_MODE == 1:
-    SOLVIS_API_URL = 'http://localhost:5000'
+if IS_OFFLINE == 1:
+   SOLVIS_API_URL = 'http://localhost:5000'
 else:
-    SOLVIS_API_URL = os.getenv('NZSHM22_SOLVIS_API_URL', 'https://ly86h01a86.execute-api.ap-southeast-2.amazonaws.com/dev/')
+   SOLVIS_API_URL = os.getenv('NZSHM22_SOLVIS_API_URL', 'https://ly86h01a86.execute-api.ap-southeast-2.amazonaws.com/dev/')

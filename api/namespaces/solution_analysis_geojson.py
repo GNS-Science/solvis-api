@@ -4,16 +4,18 @@ from functools import lru_cache
 import pandas as pd
 import geopandas as gpd
 
+from flask import current_app
 from flask_restx import reqparse
 from flask_restx import Namespace, Resource, fields
 from api.toshi_api.toshi_api import ToshiApi
 
 # Set up your local config, from environment variables, with some sone defaults
-from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL, SNS_TOPIC_ARN, LOCAL_MODE)
+from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL, SNS_TOPIC_ARN)
 from api.solvis import multi_city_events
 
+from api.datastore.datastore import get_ds
+
 from solvis import InversionSolution, new_sol, section_participation
-from api.model import SolutionLocationsRadiiDF
 
 import logging
 
@@ -34,10 +36,20 @@ def get_inversion_solution(solution_id):
 
 @lru_cache(maxsize=32)
 def get_solution_dataframe_result(_id):
+    datastore = get_ds()
+    solutions = datastore.resources.solutions
     try:
         log.info(f'get_solution_dataframe_result: {_id}')
-        return SolutionLocationsRadiiDF.get(_id) #     5cd8df26-2370-4bbb-8e3d-03e6453e0c65
-    except (SolutionLocationsRadiiDF.DoesNotExist):
+        result = solutions.get(id) #     5cd8df26-2370-4bbb-8e3d-03e6453e0c65
+
+        # pickle_bytes = io.BytesIO()
+        # pickle_bytes.write(result.dataframe)
+        # pickle_bytes.seek(0)
+
+        result.dataframe = pd.read_pickle(result.dataframe, 'zip').to_json(indent=2)
+
+        return solutions.get(_id)
+    except (solutions.DoesNotExist):
         api.abort(404)
 
 @lru_cache(maxsize=32)
@@ -89,7 +101,7 @@ solution_analysis_composite_geojson_model = api.model('Solution Analysis Geojson
     ruptures = fields.String(description='All the ruptures')
     ))
 
-@api.route('/<string:sa_id>/loc/<string:location_id>/rad/<int:radius_km>/geojson')
+@api.route('/<string:sa_id>/loc/<string:location_id>/rad/<int:radius_km>')
 @api.param('sa_id', 'The solution analysis identifier')
 @api.param('location_id', 'The location identifier')
 @api.param('radius_km', 'The rupture/location intersection radius in km')
@@ -120,54 +132,44 @@ class SolutionAnalysisGeojsonComposite(Resource):
         filtered_solution = new_sol(sol, rupture_idxs)
         sp0 = section_participation(filtered_solution)
 
-        result.ruptures=gpd.GeoDataFrame(sp0).to_json()
+        result.ruptures = gpd.GeoDataFrame(sp0).to_json()
         result.location_id = location_id
         result.radius_km = radius_km
-        #result.rupture_count = 0
-        #result.rupture_layers = layers
+        result.rupture_count = len(rupture_idxs)
         return result
 
-"""
-Magnitude  Average Rake (degrees)    Area (m^2)    Length (m)  Annual Rate
-"""
 geojson_rupture_model = api.model('Geojson Layer', dict(
-    rupture_id = fields.Integer(required=True),
-    layer_name = fields.String(required=True),
-    magnitude = fields.Float(),
-    section_count = fields.Integer(),
-    length = fields.Float(),
-    annual_rate = fields.Float(),
-    area = fields.Float(),
-    geojson = fields.String(description='The layer geojson')),
-    description='A geojson layer representing either a rupture or related poygons'
+        rupture_id = fields.Integer(required=True),
+        layer_name = fields.String(required=True),
+        magnitude = fields.Float(),
+        section_count = fields.Integer(),
+        length = fields.Float(),
+        annual_rate = fields.Float(),
+        area = fields.Float(),
+        geojson = fields.String(description='The layer geojson')),
+    description='A single rupture including metadata and the fault section geojson'
 )
 
-solution_analysis_ruptures_geojson_model = api.model('Solution Analysis Geojson', dict(
-    id = fields.String(description='The unique identifier for this analysis'),
-    location_id = fields.String(required=True),
-    radius_km = fields.String(required=True),
-    rupture_count = fields.Integer(),
-    created = fields.DateTime(description='The created timestamp'),
-    ruptures = fields.List(fields.Nested(geojson_rupture_model),
-        description='list of geojson models, one per rupture')
-))
+solution_analysis_ruptures_geojson_model = api.model('Solution Analysis Geojson',
+    dict(
+        id = fields.String(description='The unique identifier for this analysis'),
+        location_id = fields.String(required=True),
+        radius_km = fields.String(required=True),
+        rupture_count = fields.Integer(),
+        created = fields.DateTime(description='The created timestamp'),
+        ruptures = fields.List(fields.Nested(geojson_rupture_model),
+            description='list of rupture models')
+    ),
+    description='A solution analysis model'
+)
 
-# def get_rupture_geojsons(solution, filtered_df, rupture_idxs):
-#     layers = []
-#     #print(filtered_df)
-#     for r in rupture_idxs:
-#         #print(r)
-#         #print(filtered_df[(filtered_df['Rupture Index']==r)])
-#         sp0 = section_participation(solution, [r,])
-#         #print(sp0)
-#         layers.append(dict(rupture_id=str(r), layer_name=str(r), geojson=gpd.GeoDataFrame(sp0).to_json()))
-#     return layers
 
 def get_rupture_geojsons(solution, filtered_df):
     layers = []
     #print(filtered_df)
     for row in filtered_df.itertuples():
-        rupt = dict(rupture_id=row[0], magnitude=row[4], area=row[6], length=row[7], annual_rate=row._8)
+        #Pandas(Index=426115, r10km='WLG', r20km='WLG', _3=426115, Magnitude=7.7557805759, _5=-17.7493085896, _6=3595708870.845804, _7=147379.5207102174, _8=1.395e-07)
+        rupt = dict(rupture_id=row[0], magnitude=row[4], area=row[6], length=row[7], annual_rate=row[8])
         sp0 = section_participation(solution, [rupt['rupture_id'],])
         rupt['geojson'] = gpd.GeoDataFrame(sp0).to_json()
         rupt['layer_name'] = f"{sp0['FaultName'].values[0]} to {sp0['FaultName'].values[1]}"
@@ -175,14 +177,14 @@ def get_rupture_geojsons(solution, filtered_df):
         layers.append(rupt)
     return layers
 
-@api.route('/<string:sa_id>/loc/<string:location_id>/rad/<int:radius_km>/ruptures/geojson')
+@api.route('/<string:sa_id>/loc/<string:location_id>/rad/<int:radius_km>/ruptures')
 @api.param('sa_id', 'The solution analysis identifier')
 @api.param('location_id', 'The location identifier')
 @api.param('radius_km', 'The rupture/location intersection radius in km')
 @api.response(404, 'solution analysis not found')
 class SolutionAnalysisGeojsonRuptures(Resource):
     """
-    SolutionAnalysisGeojsonLayers handlers
+    SolutionAnalysisGeojsonRuptures handlers
     """
     @api.doc('get_solution_analysis_geojson ')
     @api.marshal_with(solution_analysis_ruptures_geojson_model)
