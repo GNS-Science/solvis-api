@@ -94,7 +94,9 @@ SNS_TOPIC_ARN  = os.getenv('SNS_TOPIC_ARN')
 
 IS_OFFLINE = os.getenv('IS_OFFLINE', 0) #set by serverless-wsgi plugin
 
-if IS_OFFLINE == 1:
+if IS_OFFLINE == '1':
    SOLVIS_API_URL = 'http://localhost:5000'
 else:
    SOLVIS_API_URL = os.getenv('NZSHM22_SOLVIS_API_URL', 'https://ly86h01a86.execute-api.ap-southeast-2.amazonaws.com/dev/')
+   
+SOLVIS_API_KEY = os.getenv('NZSHM22_SOLVIS_API_KEY', '')

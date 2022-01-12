@@ -2,7 +2,7 @@ import json
 from api.toshi_api.toshi_api import ToshiApi
 
 # Set up your local config, from environment variables, with some sone defaults
-from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL, SOLVIS_API_URL, IS_OFFLINE)
+from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL, SOLVIS_API_URL, SOLVIS_API_KEY, IS_OFFLINE)
 from api.solvis import multi_city_events
 from api.datastore.model import SolutionLocationsRadiiDF,  set_local_mode
 
@@ -13,12 +13,11 @@ import requests
 from solvis import InversionSolution
 
 headers={"x-api-key":API_KEY}
+solvis_headers={'x-api-key': SOLVIS_API_KEY}
 toshi_api = ToshiApi(API_URL, S3_URL, None, with_schema_validation=False, headers=headers)
 
-if IS_OFFLINE:
+if IS_OFFLINE == '1':
     set_local_mode()
-else:
-    assert 0
 
 def process_event(evt):
     # print(evt)
@@ -33,19 +32,15 @@ def process_event(evt):
     #fetch the solution
     filename = toshi_api.inversion_solution.download_inversion_solution(solution_id, WORK_PATH)
     solution = InversionSolution().from_archive(filename)
-
-    #ref https://service.unece.org/trade/locode/nz.htm
-    cities = dict(
-        WLG = ["Wellington", -41.276825, 174.777969, 2e5],
-        GIS = ["Gisborne", -38.662334, 178.017654, 5e4],
-        HLZ = ["Hamilton", -37.7826, 175.2528, 165e3],
-        LYJ = ["Lower Hutt", -41.2127, 174.8997, 112e3]
-    )
+    
+    raw_cities = json.loads(requests.get(f'{SOLVIS_API_URL}/location_lists/{locations_list_id}/locations', headers=solvis_headers).text)
+    cities = {location['id']: [location['name'], location['latitude'], location['longitude'], location['population']] for location in raw_cities}
+    
+    raw_radii = json.loads(requests.get(f'{SOLVIS_API_URL}/radii/{radii_list_id}', headers=solvis_headers).text)
+    radii = raw_radii['radii']
 
     combos = multi_city_events.city_combinations(cities, 0, 5)
     print(f"city combos: {len(combos)}")
-
-    radii = [10e3,20e3]#,30e3,40e3,50e3,100e3] #AK could be larger ??
 
     rupture_radius_site_sets = multi_city_events.main(solution, cities, combos, radii)
 
@@ -55,7 +50,7 @@ def process_event(evt):
 
     ruptures = df.join(solution.ruptures_with_rates)
     binary_frame = io.BytesIO()
-    ruptures.to_pickle(binary_frame, 'zip')
+    ruptures.to_pickle(binary_frame, 'xz')
     binary_frame.seek(0)
     print('pickle size:', binary_frame.getbuffer().nbytes)
     

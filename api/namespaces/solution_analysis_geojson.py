@@ -47,7 +47,7 @@ def get_solution_dataframe_result(_id):
         pickle_bytes.write(result.dataframe)
         pickle_bytes.seek(0)
 
-        result.dataframe = pd.read_pickle(pickle_bytes, 'zip').to_json(indent=2)
+        result.dataframe = pd.read_pickle(pickle_bytes, 'xz').to_json(indent=2)
 
         return result
     except (solutions.DoesNotExist):
