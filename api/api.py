@@ -1,6 +1,6 @@
 import logging
 from flask import Flask, g, request
-from .namespaces import api#, blueprint
+from api.namespaces import api#, blueprint
 
 from api.datastore import model
 from api.config import IS_OFFLINE
