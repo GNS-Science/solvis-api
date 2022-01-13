@@ -7,7 +7,12 @@ radii_model = api.model('Radii', {
     'radii': fields.List(fields.Integer, Required=True, description='Radii')
 })
 
-RADII = [{'id': '1', 'radii': [10e3,20e3,30e3,40e3,50e3,100e3]}]
+RADII = [{'id': '1', 'radii': [10e3]},
+         {'id': '2', 'radii': [10e3,20e3]},
+         {'id': '3', 'radii': [10e3,20e3,30e3]},
+         {'id': '4', 'radii': [10e3,20e3,30e3,40e3]},
+         {'id': '5', 'radii': [10e3,20e3,30e3,40e3,50e3]},
+         {'id': '6', 'radii': [10e3,20e3,30e3,40e3,50e3,100e3]},]
 
 @api.route('/')
 class RadiiList(Resource):
