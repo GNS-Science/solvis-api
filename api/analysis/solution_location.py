@@ -57,11 +57,11 @@ def get_location_radius_rupture_models(solution_id, sol, locations, radii):
                 rupture_count = len(rupts))
 
 
-def write():
+def clean_slate():
     model.drop_all()
     model.migrate()
 
-    # d = [x for x in get_location_radius_rupture_models(solution_id, sol, locs, radii)]
+def write1():
     with model.SolutionLocationRadiusRuptureSet.batch_write() as batch:
         for item in get_location_radius_rupture_models(solution_id, sol, locs, radii):
             #print(item)
@@ -72,10 +72,6 @@ def get_ruptures_with_rates(solution_id, sol):
     rs = sol.rupture_sections
     for row in sol.ruptures_with_rates.itertuples():
         sections = [int(x) for x in rs[rs.rupture==int(row[1])].section.tolist()]
-        print(sections)
-        #row = row.tolist()
-        #Pandas(Index=447283, _1=447283, Magnitude=7.010965322902989, _3=-70.0, _4=647095592.8797725, _5=27742.634757962165, _6=5.192883976105789e-05)
-        #rupt = dict(rupture_id=row[1], magnitude=row[2], rake=row[3], area=row[4], length=row[5], annual_rate=row[6])
         yield model.SolutionRupture(
             solution_id = solution_id,
             rupture_index = int(row[1]),
@@ -94,20 +90,29 @@ def write2():
 
 def get_fault_sections(solution_id, sol):
     for row in sol.fault_sections.itertuples():
-        print(row)
-        # Pandas(Index=0, FaultID=0, FaultName='Acton, Subsection 0', DipDeg=60.0, Rake=-70.0, LowDepth=29.0, UpDepth=0.0, DipDir=94.3, AseismicSlipFactor=0.0, CouplingCoeff=1.0, SlipRate=0.2, ParentID=0, ParentName='Acton', SlipRateStdDev=0.15, geometry=<shapely.geometry.linestring.LineString object at 0x7f9a6a529a00>)
-        assert 0
-        #row = row.tolist()
-        # yield model.SolutionFaultSection(
-        #     solution_id = solution_id,
-        #     rupture_index = int(row[1]),
-        #     magnitude = float(row[2]),     # Magnitude,
-        #     avg_rake = float(row[3]),     # Average Rake (degrees),
-        #     area_m2 = float(row[4]),       # Area (m^2),
-        #     length_m = float(row[5]),      # Length (m),
-        #     annual_rate = float(row[6]),   # Annual Rate
-        #     fault_sections = sorted(sections)
-        #     )
+        yield model.SolutionFaultSection(
+            solution_id = solution_id,
+            section_index = row[1],
+            fault_name = row[2],
+            dip_degree = float(row[3]),
+            rake = float(row[4]),
+            low_depth = float(row[5]),
+            up_depth = float(row[6]),
+            dip_dir = float(row[7]),
+            aseismic_slip_factor = float(row[8]),
+            coupling_coeff = float(row[9]),
+            slip_rate = float(row[10]),
+            parent_id = int(row[11]),
+            parent_name = row[12],
+            slip_rate_std_dev = float(row[13]),
+            geometry = str(row[14])
+        )
+
+
+def write3():
+    with model.SolutionFaultSection.batch_write() as batch:
+        for item in get_fault_sections(solution_id, sol):
+            batch.save(item)
 
 def query():
 
@@ -126,26 +131,20 @@ def query():
 if __name__ == '__main__':
 
     solution_id = "ZZZ"
-    #sol = solvis.InversionSolution().from_archive(PurePath(WORK_PATH,  name))
-    #sol = solvis.new_sol(sol, solvis.rupt_ids_above_rate(sol, 0))
+    sol = solvis.InversionSolution().from_archive(PurePath(WORK_PATH,  name))
+    sol = solvis.new_sol(sol, solvis.rupt_ids_above_rate(sol, 0))
 
     mSRL = model.SolutionLocationRadiusRuptureSet
     mRR = model.SolutionRupture
 
     model.set_local_mode()
 
-    #get_fault_sections(solution_id, sol)
+    clean_slate()
+    write1()
+    write2()
+    write3()
 
-    # print(sorted(rs[rs.rupture==881].section.tolist()))
-
-    #write()
-    #write2()
-    #et_ruptures_with_rates(solution_id, sol)
-    #assert 0
     query()
-    # print()
-    # for item in mSRL.scan(limit=20):
-    #     print("Query returned item {0}".format(item))
 
     print('DONE')
 

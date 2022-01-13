@@ -54,24 +54,21 @@ class SolutionFaultSection(Model):
         table_name = "SolutionFaultSection"
 
     solution_id = UnicodeAttribute(hash_key=True)
-    rupture_index = NumberAttribute(range_key=True)
-    """
-    Pandas(Index=0,
-    FaultID=0,
-    FaultName='Acton, Subsection 0',
-    DipDeg=60.0,
-    Rake=-70.0,
-    LowDepth=29.0,
-    UpDepth=0.0,
-    DipDir=94.3,
-    AseismicSlipFactor=0.0,
-    CouplingCoeff=1.0,
-    SlipRate=0.2,
-    ParentID=0,
-    ParentName='Acton',
-    SlipRateStdDev=0.15,
-    geometry=<shapely.geometry.linestring.LineString object at 0x7f9a6a529a00>)
-    """
+    section_index = NumberAttribute(range_key=True)
+    fault_name = UnicodeAttribute()
+    dip_degree = NumberAttribute()
+    rake = NumberAttribute()
+    low_depth = NumberAttribute()
+    up_depth = NumberAttribute()
+    dip_dir = NumberAttribute()
+    aseismic_slip_factor = NumberAttribute()
+    coupling_coeff = NumberAttribute()
+    slip_rate = NumberAttribute()
+    parent_id = NumberAttribute()
+    parent_name = UnicodeAttribute()
+    slip_rate_std_dev = NumberAttribute()
+    geometry = UnicodeAttribute()
+
 table_classes = (
     SolutionLocationRadiusRuptureSet,
     SolutionRupture,
