@@ -73,7 +73,7 @@ class SolutionAnalysisList(Resource):
         #TODO error handling here...
         solution = toshi_api.inversion_solution.get_file_download_url(solution_id)
 
-        if IS_OFFLINE == '1':
+        if IS_OFFLINE:
             AWS_REGION = 'ap-southeast-2'
             client = boto3.client('sns', endpoint_url="http://127.0.0.1:4002", region_name=AWS_REGION)
         else:

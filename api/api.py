@@ -25,7 +25,7 @@ def create_app():
     #set up the datastore config
     datastore = get_datastore()
 
-    if IS_OFFLINE == '1':
+    if IS_OFFLINE:
         model.set_local_mode()
 
     app.before_first_request(model.migrate)

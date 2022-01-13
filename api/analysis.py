@@ -16,7 +16,7 @@ headers={"x-api-key":API_KEY}
 solvis_headers={'x-api-key': SOLVIS_API_KEY}
 toshi_api = ToshiApi(API_URL, S3_URL, None, with_schema_validation=False, headers=headers)
 
-if IS_OFFLINE == '1':
+if IS_OFFLINE:
     set_local_mode()
 
 def process_event(evt):
