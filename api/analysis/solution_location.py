@@ -1,4 +1,6 @@
+import geopandas as gpd
 import pandas as pd
+
 
 from pathlib import PurePath
 import solvis
@@ -88,10 +90,11 @@ def write2():
         for item in get_ruptures_with_rates(solution_id, sol):
             batch.save(item)
 
-def get_fault_sections(solution_id, sol):
+def get_fault_section_models(solution_id, sol):
     for row in sol.fault_sections.itertuples():
         yield model.SolutionFaultSection(
             solution_id = solution_id,
+            section_index_rk = str(row[1]),
             section_index = row[1],
             fault_name = row[2],
             dip_degree = float(row[3]),
@@ -111,22 +114,65 @@ def get_fault_sections(solution_id, sol):
 
 def write3():
     with model.SolutionFaultSection.batch_write() as batch:
-        for item in get_fault_sections(solution_id, sol):
+        for item in get_fault_section_models(solution_id, sol):
             batch.save(item)
 
 def query():
 
-    for item in mSRL.query(f'{solution_id}',
-        mSRL.location_radius.startswith("WLG"),
-        #filter_condition=mSRL.rupture_count > 200,
-        limit=20):
-        print("Query returned item {0}".format(item), item.rupture_count)
+    # for item in mSLR.query(f'{solution_id}',
+    #     mSLR.location_radius.startswith("WLG"),
+    #     #filter_condition=mSLR.rupture_count > 200,
+    #     limit=20):
+    #     print("Query returned item {0}".format(item), item.rupture_count)
+    # print()
 
-    for item in mRR.query(f'{solution_id}',
-        #mRR.rupture_index == 238707,
-        filter_condition=mRR.magnitude > 8,
+    # for rupt in mSR.query(f'{solution_id}',
+    #     #mRR.rupture_index == 238707,
+    #     filter_condition=mSR.magnitude > 8,
+    #     limit=20):
+    #     print("Query returned rupt {0}".format(rupt), rupt.magnitude, len(rupt.fault_sections))
+    # print()
+
+    for item in mSFS.query(f'{solution_id}',
+        #mSFS.section_index == 0, #list(rupt.fault_sections)
+        #filter_condition=mSFS.section_index.is_in(*list(rupt.fault_sections)),
+        #mSFS.section_index.is_in(*list(rupt.fault_sections)),
         limit=20):
-        print("Query returned item {0}".format(item), item.magnitude, len(item.fault_sections))
+        print("Query returned item {0}".format(item), item.rake, item.geometry)
+    print()
+
+
+def get_rupture_ids(solution_id, locations, radius, union=True):
+    ids = None
+    for loc in locations:
+        for item in mSLR.query(f'{solution_id}',
+            mSLR.location_radius == f"{loc}:{radius}"):
+            if not item.ruptures:
+                continue
+            if union:
+                ids = ids.union(item.ruptures) if ids else item.ruptures
+            else:
+                ids = ids.intersection(item.ruptures) if ids else item.ruptures
+    return ids
+
+def get_ruptures(solution_id):
+    index = []
+    values = []
+    for item in mSR.query(f'{solution_id}'):
+        values.append(item.attribute_values)
+        index.append(item.rupture_index)
+
+    return pd.DataFrame(values, index=index)
+
+def get_fault_sections(solution_id):
+    index = []
+    values = []
+    for item in mSFS.query(f'{solution_id}'):
+        values.append(item.attribute_values)
+        index.append(item.section_index)
+
+    return gpd.GeoDataFrame(values, index=index)
+
 
 if __name__ == '__main__':
 
@@ -134,8 +180,9 @@ if __name__ == '__main__':
     sol = solvis.InversionSolution().from_archive(PurePath(WORK_PATH,  name))
     sol = solvis.new_sol(sol, solvis.rupt_ids_above_rate(sol, 0))
 
-    mSRL = model.SolutionLocationRadiusRuptureSet
-    mRR = model.SolutionRupture
+    mSLR = model.SolutionLocationRadiusRuptureSet
+    mSR = model.SolutionRupture
+    mSFS = model.SolutionFaultSection
 
     model.set_local_mode()
 
@@ -145,6 +192,16 @@ if __name__ == '__main__':
     write3()
 
     query()
+    sections_gdf = get_fault_sections(solution_id)
+    print(sections_gdf)
+    ruptures_df = get_ruptures(solution_id)
+    print(ruptures_df)
+    # ids = get_rupture_ids(solution_id, ['WLG', 'CHC'], radius=10000, union=True)
+    # print(ids)
+
+    print('Intersection')
+    ids = get_rupture_ids(solution_id, ['WLG', 'CHC'], radius=10000, union=False)
+    print(ids)
 
     print('DONE')
 

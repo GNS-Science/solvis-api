@@ -54,7 +54,10 @@ class SolutionFaultSection(Model):
         table_name = "SolutionFaultSection"
 
     solution_id = UnicodeAttribute(hash_key=True)
-    section_index = NumberAttribute(range_key=True)
+    section_index_rk = UnicodeAttribute(range_key=True)
+
+    section_index = NumberAttribute()
+
     fault_name = UnicodeAttribute()
     dip_degree = NumberAttribute()
     rake = NumberAttribute()
