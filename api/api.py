@@ -1,5 +1,6 @@
 import logging
 from flask import Flask, g, request
+from flask_cors import CORS
 from api.namespaces import api#, blueprint
 
 from api.datastore import model
@@ -21,6 +22,7 @@ def create_app():
 
     app = Flask(__name__)
     api.init_app(app)
+    CORS(app)
 
     #set up the datastore config
     #datastore = get_datastore()
