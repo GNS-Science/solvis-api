@@ -138,8 +138,8 @@ functions:
       - sns:
           topicName: ${self:custom.topic_name}         #${self:custom.topic_arn}
     environment:
-      NZSHM22_SOLVIS_API_URL: ${env:NZSHM22_SOLVIS_API_URL}
-      NZSHM22_SOLVIS_API_KEY: ${env:NZSHM22_SOLVIS_API_KEY}
+      NZSHM22_SOLVIS_API_URL: {env:NZSHM22_SOLVIS_API_URL}
+      NZSHM22_SOLVIS_API_KEY: {env:NZSHM22_SOLVIS_API_KEY}
       NZSHM22_TOSHI_API_URL: ${env:NZSHM22_TOSHI_API_URL}
       NZSHM22_TOSHI_API_ENABLED: ${env:NZSHM22_TOSHI_API_ENABLED}
       NZSHM22_TOSHI_API_KEY: ${env:NZSHM22_TOSHI_API_KEY}
