@@ -2,9 +2,6 @@
 from pynamodb.attributes import UnicodeAttribute, JSONAttribute, UTCDateTimeAttribute, NumberAttribute, NumberSetAttribute
 from pynamodb.models import Model
 
-# from pynamodb.attributes import Attribute
-# from pynamodb.constants import BINARY
-
 from datetime import datetime
 
 import logging

@@ -1,7 +1,7 @@
 from typing import List, Iterator
 import logging
 
-from pathlib import PurePath
+#from pathlib import PurePath
 import solvis
 
 from api.datastore import model
@@ -10,7 +10,7 @@ def clean_slate():
     model.drop_all()
     model.migrate()
 
-def get_location_radius_rupture_models(solution_id, sol, locations, radii) -> Iterator[model.SolutionLocationRadiusRuptureSet]:
+def get_location_radius_rupture_models(solution_id:str, sol: solvis.InversionSolution, locations:List[str], radii:List[int]) -> Iterator[model.SolutionLocationRadiusRuptureSet]:
     for loc, item in locations.items():
         for radius in radii:
             polygon = solvis.circle_polygon(radius_m=radius, lat=item[1], lon=item[2])
