@@ -11,7 +11,7 @@ from flask_restx import Namespace, Resource, fields
 from api.toshi_api.toshi_api import ToshiApi
 
 # Set up your local config, from environment variables, with some sone defaults
-from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL, SNS_TOPIC_ARN)
+from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL, SNS_TOPIC_ARN, IS_OFFLINE)
 from api.solvis import multi_city_events
 
 from api.datastore.datastore import get_ds
@@ -30,7 +30,10 @@ toshi_api = ToshiApi(API_URL, S3_URL, None, with_schema_validation=False, header
 
 @lru_cache(maxsize=32)
 def get_inversion_solution(solution_id):
-    WORK_PATH = "./tmp"
+    if IS_OFFLINE:
+        WORK_PATH = "./tmp"
+    else:
+        WORK_PATH = "/tmp"
     log.info(f'get_inversion_solution: {solution_id}')
     filename = toshi_api.inversion_solution.download_inversion_solution(solution_id, WORK_PATH)
     return InversionSolution().from_archive(filename)
