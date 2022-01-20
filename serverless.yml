@@ -131,15 +131,15 @@ functions:
 
   analyse-inversion-solution:
     description: The analysis handler of ${self:service}
-    handler: api/analysis.handler
+    handler: api/process_solution.handler
     memorySize: 2048 # optional, in MB, default is 1024
-    timeout: 900 # optional, in seconds, default is 6
+    timeout: 300 # optional, in seconds, default is 6
     events:
       - sns:
           topicName: ${self:custom.topic_name}         #${self:custom.topic_arn}
     environment:
-      NZSHM22_SOLVIS_API_URL: {env:NZSHM22_SOLVIS_API_URL}
-      NZSHM22_SOLVIS_API_KEY: {env:NZSHM22_SOLVIS_API_KEY}
+      NZSHM22_SOLVIS_API_URL: ${env:NZSHM22_SOLVIS_API_URL}
+      NZSHM22_SOLVIS_API_KEY: ${env:NZSHM22_SOLVIS_API_KEY}
       NZSHM22_TOSHI_API_URL: ${env:NZSHM22_TOSHI_API_URL}
       NZSHM22_TOSHI_API_ENABLED: ${env:NZSHM22_TOSHI_API_ENABLED}
       NZSHM22_TOSHI_API_KEY: ${env:NZSHM22_TOSHI_API_KEY}

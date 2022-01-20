@@ -21,7 +21,7 @@ import geopandas as gpd
 from solvis import InversionSolution, new_sol, section_participation
 # from api.model import SolutionLocationsRadiiDF
 
-from api.namespaces.solution_analysis_geojson import get_solution_dataframe_result
+#from api.namespaces.solution_analysis_geojson import get_solution_dataframe_result
 from api.namespaces.solution_analysis_geojson import api
 
 log = logging.getLogger(__name__)
@@ -94,19 +94,19 @@ class SolutionAnalysisList(Resource):
         return api.payload
 
 
-@api.route('/<sa_id>')
-@api.param('sa_id', 'The solution analysis identifier')
-@api.response(404, 'solution analysis not found')
-class SolutionAnalysis(Resource):
-    """
-    SolutionAnalysis handlers
-    """
-    @api.doc('get_solution_analysis ')
-    @api.marshal_with(solution_analysis_model)
+# @api.route('/<sa_id>')
+# @api.param('sa_id', 'The solution analysis identifier')
+# @api.response(404, 'solution analysis not found')
+# class SolutionAnalysis(Resource):
+#     """
+#     SolutionAnalysis handlers
+#     """
+#     @api.doc('get_solution_analysis ')
+#     @api.marshal_with(solution_analysis_model)
 
-    def get(self, sa_id):
-        """
-        GET handler
-        """
-        return get_solution_dataframe_result(sa_id)
+#     def get(self, sa_id):
+#         """
+#         GET handler
+#         """
+#         return get_solution_dataframe_result(sa_id)
 

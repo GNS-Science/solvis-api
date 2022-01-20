@@ -5,7 +5,7 @@ from api.namespaces import api#, blueprint
 from api.datastore import model
 from api.config import IS_OFFLINE
 
-from api.datastore.datastore import get_datastore
+#from api.datastore.datastore import get_datastore
 
 def create_app():
     """
@@ -23,7 +23,7 @@ def create_app():
     api.init_app(app)
 
     #set up the datastore config
-    datastore = get_datastore()
+    #datastore = get_datastore()
 
     if IS_OFFLINE:
         model.set_local_mode()
