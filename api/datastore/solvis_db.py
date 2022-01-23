@@ -1,5 +1,6 @@
 from typing import List, Iterator, Dict
 import logging
+from functools import lru_cache
 
 #from pathlib import PurePath
 import solvis
@@ -10,6 +11,7 @@ def clean_slate():
     model.drop_all()
     model.migrate()
 
+#@lru_cache(maxsize=32)
 def get_location_radius_rupture_models(solution_id:str, sol: solvis.InversionSolution, locations:List[Dict], radii:List[int]) -> Iterator[model.SolutionLocationRadiusRuptureSet]:
     for item in locations:
         print(item)
@@ -38,6 +40,7 @@ def save_solution_location_radii(solution_id: str, models: List[model.SolutionLo
             #item.save()
             batch.save(item)
 
+#@lru_cache(maxsize=32)
 def get_ruptures_with_rates(solution_id, sol) -> Iterator[model.SolutionRupture]:
     rs = sol.rupture_sections
     for row in sol.ruptures_with_rates.itertuples():
@@ -58,6 +61,7 @@ def save_solution_ruptures(solution_id, models: List[model.SolutionRupture]):
         for item in models:
             batch.save(item)
 
+#@lru_cache(maxsize=32)
 def get_fault_section_models(solution_id, sol) -> Iterator[model.SolutionFaultSection]:
     for row in sol.fault_sections.itertuples():
         yield model.SolutionFaultSection(

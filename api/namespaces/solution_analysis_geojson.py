@@ -1,6 +1,7 @@
 #!python
 
 import io
+import json
 from functools import lru_cache
 import pandas as pd
 import geopandas as gpd
@@ -104,11 +105,10 @@ toshi_api = ToshiApi(API_URL, S3_URL, None, with_schema_validation=False, header
 #     return filtered
 
 
-
 solution_analysis_composite_geojson_model = api.model('Solution Analysis Geojson', dict(
-    solution_id = fields.String(description='The unique identifier for this analysis'),
-    location_ids = fields.String(required=True),
-    radius_km = fields.String(required=True),
+    solution_id = fields.String(required=True, description='The unique identifier for the Inversion Solution.'),
+    location_ids = fields.String(required=True, description='The location identifiers, comma-delmited list e.g. `WLG,PMR,ZQN`'),
+    radius_km = fields.String(required=True, description='The rupture/location intersection radius in km.'),
     rupture_count = fields.Integer(),
     created = fields.DateTime(description='The created timestamp'),
     ruptures = fields.String(description='All the ruptures'),
@@ -138,15 +138,16 @@ class SolutionAnalysisGeojsonComposite(Resource):
         print ('args', args, self)
         annual_rate_threshold=float(args.get('rate_above') or 0)
 
-        locations = location_ids.split(',')
-        rupture_sections_gdf = matched_rupture_sections_gdf(solution_id, locations, radius_km*1000, minimum_rate=1e-12)
+        rupture_sections_gdf = matched_rupture_sections_gdf(solution_id, location_ids, radius_km*1000, minimum_rate=1e-12)
 
         error_message = None
-        geojson = None
+        geojson = json.dumps(dict(type="FeatureCollection", features= []))
         if (not rupture_sections_gdf is None) and (rupture_sections_gdf.shape[0] > 1e4):
-            error_message = "Too many ruptures"
+            error_message = "Too many ruptures satisfy the query, please try a more selective query."
+        elif (rupture_sections_gdf is None) or  (rupture_sections_gdf.shape[0] == 0):
+            error_message = "No ruptures satisfy the query."
         else:
-            geojson = rupture_sections_gdf.to_json() if not rupture_sections_gdf is None else ""
+            geojson = rupture_sections_gdf.to_json()
 
         result = dict(
             solution_id = solution_id,

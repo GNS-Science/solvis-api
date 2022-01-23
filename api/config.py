@@ -100,3 +100,5 @@ else:
    SOLVIS_API_URL = os.getenv('NZSHM22_SOLVIS_API_URL', 'https://ly86h01a86.execute-api.ap-southeast-2.amazonaws.com/dev/')
    
 SOLVIS_API_KEY = os.getenv('NZSHM22_SOLVIS_API_KEY', '')
+
+REGION = os.getenv('REGION', 'us-east-1')

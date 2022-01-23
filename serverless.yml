@@ -115,12 +115,12 @@ functions:
   app:
     description: The REST API of ${self:service}
     handler: wsgi_handler.handler
-    memorySize: 384 # optional, in MB, default is 1024
+    memorySize: 5120 # optional, in MB, default is 1024
     #timeout: 5 # optional, in seconds, default is 6
     environment:
       SNS_TOPIC_ARN: ${self:custom.topic_arn}
       IS_OFFLINE: ${env:SLS_OFFLINE}
-      API_ENDPOINT: ${env:NZSHM22_SOLVIS_API_URL}
+      #API_ENDPOINT: ${env:NZSHM22_SOLVIS_API_URL}
       NZSHM22_TOSHI_API_URL: ${env:NZSHM22_TOSHI_API_URL}
       NZSHM22_TOSHI_API_ENABLED: ${env:NZSHM22_TOSHI_API_ENABLED}
       NZSHM22_TOSHI_API_KEY: ${env:NZSHM22_TOSHI_API_KEY}

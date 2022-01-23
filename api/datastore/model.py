@@ -4,11 +4,13 @@ from pynamodb.models import Model
 
 from datetime import datetime
 
+from api.config import REGION
+
 import logging
 
 logging.basicConfig()
 log = logging.getLogger("pynamodb")
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
 log.propagate = True
 
 class SolutionLocationRadiusRuptureSet(Model):
@@ -16,6 +18,7 @@ class SolutionLocationRadiusRuptureSet(Model):
         read_capacity_units = 10
         write_capacity_units = 20
         table_name = "SolutionLocationRadiusRuptureSet"
+        region = REGION
 
     #solution_location_radius = UnicodeAttribute(hash_key=True)
     solution_id = UnicodeAttribute(hash_key=True)
@@ -33,6 +36,7 @@ class SolutionRupture(Model):
         read_capacity_units = 10
         write_capacity_units = 20
         table_name = "SolutionRupture"
+        region = REGION
 
     solution_id = UnicodeAttribute(hash_key=True)
     rupture_index = NumberAttribute(range_key=True)
@@ -49,6 +53,7 @@ class SolutionFaultSection(Model):
         read_capacity_units = 10
         write_capacity_units = 20
         table_name = "SolutionFaultSection"
+        region = REGION
 
     solution_id = UnicodeAttribute(hash_key=True)
     section_index_rk = UnicodeAttribute(range_key=True)

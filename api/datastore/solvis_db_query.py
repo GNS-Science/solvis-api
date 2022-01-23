@@ -4,7 +4,7 @@ import pandas as pd
 from typing import List, Iterator, Set
 
 #import solvis
-
+from functools import lru_cache
 from api.datastore import model
 
 mSLR = model.SolutionLocationRadiusRuptureSet
@@ -14,8 +14,13 @@ mSFS = model.SolutionFaultSection
 # QUERY operations for the API get endpoint(s)
 def get_rupture_ids(solution_id:str, locations:List[str], radius:int, union:bool =True) -> Set[int]:
     ids = None
+
+    @lru_cache(maxsize=64)
+    def query_fn(solution_id, loc, radius):
+        return [i for i in mSLR.query(f'{solution_id}', mSLR.location_radius == f"{loc}:{radius}")]
+
     for loc in locations:
-        items = [i for i in mSLR.query(f'{solution_id}', mSLR.location_radius == f"{loc}:{radius}")]
+        items = query_fn(solution_id, loc, radius)
         assert len(items) in [0,1]
         if len(items):
             item = items[0]
@@ -46,7 +51,11 @@ def get_fault_sections(solution_id:str) -> gpd.GeoDataFrame:
     df = pd.DataFrame(values, index)
     return gpd.GeoDataFrame(df, geometry=gpd.GeoSeries.from_wkt(df.geometry))
 
-def matched_rupture_sections_gdf(solution_id:str, locations:List[str], radius:int, minimum_rate:int, union:bool=False) -> gpd.GeoDataFrame:
+@lru_cache(maxsize=32)
+def matched_rupture_sections_gdf(solution_id:str, locations:str, radius:int, minimum_rate:int, union:bool=False) -> gpd.GeoDataFrame:
+
+    locations = locations.split(',')
+    print(locations)
 
     print('Intersection/Union')
     ids = get_rupture_ids(solution_id, locations, int(radius), union)
@@ -91,7 +100,38 @@ def matched_rupture_sections_gdf(solution_id:str, locations:List[str], radius:in
     print(f'columns: {rupture_sections_gdf.columns}')
     print( rupture_sections_gdf[['rupture_index', 'section_index', 'fault_name', 'magnitude']] )
 
-    return rupture_sections_gdf
+    return rupture_sections_gdf.drop(columns = ['annual_rate', 'area_m2', 'length_m', 'magnitude',
+        'parent_id', 'parent_name', 'rupture_index', 'section_index_rk', 'solution_id', 'solution_id_R'] )
+
+"""
+"Feature\", \"properties\": {
+\"annual_rate\": 2.055428010806169e-06,
+\"area_m2\": 23086300668.45861,
+\"aseismic_slip_factor\": 0,
+\"avg_rake\": -10.469866097808904,
+\"coupling_coeff\": 1,
+\"dip_degree\": 80,
+\"dip_dir\": 130.8, \"fault_name
+\": \"Alpine: Caswell, Subsection 0\",
+ \"length_m\": 1019509.660978102,
+ \"low_depth\": 22.7,
+ \"magnitude\": 8.463349505790028,
+ \"parent_id\": 8,
+ \"parent_name\": \"Alpine: Caswell\",
+ \"rake\": 0,
+ \"rupture_index\": 70617,
+ \"section_index\": 20,
+ \"section_index_rk\": \"20\",
+ \"slip_rate\": 31.4,
+ \"slip_rate_std_dev\": 2.8,
+ \"solution_id\": \"SW52ZXJzaW9uU29sdXRpb246MTk4MzcuMGZraHVq\",
+ \"solution_id_R\": \"SW52ZXJzaW9uU29sdXRpb246MTk4MzcuMGZraHVq\",
+ \"up_depth\": 0},
+ \"geometry\": {\"type\": \"LineString\", \"coordinates\": [[166.9821, -45.0393], [167.017, -45.0338], [167.0462, -45.0193], [167.0839, -44.9916], [167.0929467881779, -44.98315924182272]]}}, {\"id\": \"99\", \"type\": \"Feature\", \"properties\": {\"annual_rate\": 6.348522450816034e-06, \"area_m2\": 23378341839.866745, \"aseismic_slip_factor\": 0, \"avg_rake\": -10.335223966086346, \"coupling_coeff\": 1, \"dip_degree\": 80, \"dip_dir\": 130.8, \"fault_name\": \"Alpine: Caswell, Subsection 0\", \"length_m\": 1030656.2705738322, \"low_depth\": 22.7, \"magnitude\": 8.46880885689296, \"parent_id\": 8, \"parent_name\": \"Alpine: Caswell\", \"rake\": 0, \"rupture_index\": 70618, \"section_index\": 20, \"section_index_rk\": \"20\", \"slip_rate\": 31.4, \"slip_rate_std_dev\": 2.8, \"solution_id\": \"SW52ZXJzaW9uU29sdXRpb246MTk4MzcuMGZraHVq\", \"solution_id_R\": \"SW52ZXJzaW9uU29sdXRpb246MTk4MzcuMGZraHVq\", \"up_depth\": 0}, \"geometry\": {\"type\": \"LineString\", \"coordinates\": [[166.9821, -45.0393], [167.017, -45.0338], [167.0462, -45.0193], [167.0839, -44.9916], [167.0929467881779, -44.98315924182272]]}}, {\"id\": \"199\", \"type\": \"Feature\", \"properties\": {\"annual_rate\": 6.318460614488189e-09, \"area_m2\": 22485716610.601, \"aseismic_slip_factor\": 0, \"avg_rake\": -10.757953895692369, \"coupling_coeff\": 1, \"dip_degree\": 80, \"dip_dir\": 130.8, \"fault_name\": \"Alpine: Caswell, Subsection 0\", \"length_m\": 996887.9699411752, \"low_depth\": 22.7, \"magnitude\": 8.45190190393534, \"parent_id\": 8, \"parent_name\": \"Alpine: Caswell\", \"rake\": 0, \"rupture_index\": 71242, \"section_index\": 20, \"section_index_rk\": \"20\", \"slip_rate\": 31.4, \"slip_rate_std_dev\": 2.8, \"solution_id\": \"SW52ZXJzaW9uU29sdXRpb246MTk4MzcuMGZraHVq\", \"solution_id_R\": \"SW52ZXJzaW9uU29sdXRpb246MTk4MzcuMGZraHVq\", \"up_depth\": 0}, \"geometry\": {\"type\": \"LineString\", \"coordinates\": [[166.9821, -45.0393], [167.017, -45.0338], [167.0462, -45.0193], [167.0839, -44.9916], [167.0929467881779, -44.98315924182272]]}}, {\"id\": \"296\", \"type\": \"Feature\", \"properties\": {\"annual_rate\": 2.3507729040528737e-08, \"area_m2\": 22777757782.00915, \"aseismic_slip_factor\": 0, \"avg_rake\": -10.615936068793474, \"coupling_coeff\": 1, \"dip_degree\": 80, \"dip_dir\": 130.8, \"fault_name\": \"Alpine: Caswell, Subsection 0\", \"length_m\": 1008034.5795369064, \"low_depth\": 22.7, \"magnitude\": 8.45750613516974, \"parent_id\": 8, \"parent_name\": \"Alpine: Caswell\", \"rake\": 0, \"rupture_index\": 71243, \"section_index\": 20, \"section_index_rk\": \"20\", \"slip_rate\": 31.4, \"slip_rate_std_dev\": 2.8, \"solution_id\": \"SW52ZXJzaW9uU29sdXRpb246MTk4MzcuMGZraHVq\", \"solution_id_R\": \"SW52ZXJzaW9uU29sdXRpb246MTk4MzcuMGZraHVq\", \"up_depth\": 0}, \"geometry\": {\"type\": \"LineString\", \"coordinates\": [[166.9821, -45.0393], [167.017, -45.0338], [167.0462, -45.0193], [167.0839, -44.9916], [167.0929467881779, -44.98315924182272]]}}, {\"id\": \"394\", \"type\": \"Feature\", \"properties\": {\"annual_rate\": 4.131302556254752e-06, \"area_m2\": 23069798953.417297, \"aseismic_slip_factor\": 0, \"avg_rake\": -10.477577637657475, \"coupling_coeff\": 1, \"dip_degree\": 80, \"dip_dir\": 130.8, \"fault_name\": \"Alpine: Caswell, Subsection 0\", \"length_m\": 1019181.1891326372, \"low_depth\": 22.7, \"magnitude\": 8.463038968452764, \"parent_id\": 8, \"parent_name\": \"Alpine: Caswell\", \"rake\": 0, \"rupture_index\": 71244, \"section_index\": 20, \"section_index_rk\": \"20\", \"slip_rate\": 31.4, \"slip_rate_std_dev\": 2.8, \"solution_id\": \"SW52ZXJzaW9uU29sdXRpb246MTk4MzcuMGZraHVq\", \"solution_id_R\": \"SW52ZXJzaW9uU29sdXRpb246MTk4MzcuMGZraHVq\", \"up_depth\": 0}, \"geometry\": {\"type\": \"LineString\", \"coordinates\": [[166.9821, -45.0393], [167.017, -45.0338], [167.0462, -45.0193], [167.0839, -44.9916], [167.0929467881779, -44.98315924182272]]}}, {\"id\": \"493\", \"type\": \"Feature\", \"properties\": {\"annual_rate\": 9.328251332248747e-06, \"area_m2\": 23361840124.82543, \"aseismic_slip_factor\": 0, \"avg_rake\": -10.342740516069568, \"coupling_coeff\": 1, \"dip_degree\": 80, \"dip_dir\": 130.8, \"fault_name\": \"Alpine: Caswell, Subsection 0\", \"length_m\": 1030327.7987283674, \"low_depth\": 22.7, \"magnitude\": 8.468502200143726, \"parent_id\": 8, \"parent_name\": \"Alpine: Caswell\", \"rake\": 0, \"rupture_index\": 71245, \"section_index\": 20, \"section_index_rk\": \"20\", \"slip_rate\": 31.4, \"slip_rate_std_dev\": 2.8, \"solution_id\": \"SW52ZXJzaW9uU29sdXRpb246MTk4MzcuMGZraHVq\", \"solution_id_R\": \"SW52ZXJzaW9uU29sdXRpb246MTk4MzcuMGZraHVq\", \"up_depth\": 0}, \"geometry\": {\"type\": \"LineString\", \"coordinates\": [[166.9821, -45.0393], [167.017, -45.0338], [167.0462, -45.0193], [167.0839, -44.9916], [167.0929467881779, -44.98315924182272]]}}, {\"id\": \"593\", \"type\": \"Feature\", \"properties\": {\"annual_rate\": 2.847518028466272e-10, \"area_m2\": 22736874406.11083, \"aseismic_slip_factor\": 0, \"avg_rake\": -10.635593873393702, \"coupling_coeff\": 1, \"dip_degree\": 80, \"dip_dir\": 130.8, \"fault_name\": \"Alpine: Caswell, Subsection 0\", \"length_m\": 1006341.6914000884, \"low_depth\": 22.7, \"magnitude\": 8.456725928507659, \"parent_id\": 8, \"parent_name\": \"Alpine: Caswell\", \"rake\": 0, \"rupture_index\": 71819, \"section_index\": 20, \"section_index_rk\": \"20\", \"slip_rate\": 31.4, \"slip_rate_std_dev\": 2.8, \"solution_id\": \"SW52ZXJzaW9uU29sdXRpb246MTk4MzcuMGZraHVq\", \"solution_id_R\": \"SW52ZXJzaW9uU29sdXRpb246MTk4MzcuMGZraHVq\", \"up_depth\": 0}, \"geometry\": {\"type\": \"LineString\", \"coordinates\": [[166.9821, -45.0393], [167.017, -45.0338], [167.0462, -45.0193], [167.0839, -44.9916], [167.0929467881779, -44.98315924182272]]}}, {\"id\": \"691\", \"type\": \"Feature\", \"properties\": {\"annual_rate\": 2.811564035896247e-06, \"area_m2\": 23028915577.51897, \"aseismic_slip_factor\": 0, \"avg_rake\": -10.496731629556676, \"coupling_coeff\": 1, \"dip_degree\": 80, \"dip_dir\": 130.8, \"fault_name\": \"Alpine: Caswell, Subsection 0\", \"length_m\": 1017488.3009958192, \"low_depth\": 22.7, \"magnitude\": 8.462268647211136, \"parent_id\": 8, \"parent_name\": \"Alpine: Caswell\", \"rake\": 0, \"rupture_index\": 71820, \"section_index\": 20, \"section_index_rk\": \"20\", \"slip_rate\": 31.4, \"slip_rate_std_dev\": 2.8, \"solution_id\": \"SW52ZXJzaW9uU29sdXRpb246MTk4MzcuMGZraHVq\", \"solution_id_R\": \"SW52ZXJzaW9uU29sdXRpb246MTk4MzcuMGZraHVq\", \"up_depth\": 0}, \"geometry\": {\"type\": \"LineString\", \"coordinates\": [[166.9821, -45.0393], [167.017, -45.0338], [167.0462, -45.0193], [167.0839, -44.9916], [167.0929467881779, -44.98315924182272]]}},
+
+"""
+
+
 
 # def query():
 
