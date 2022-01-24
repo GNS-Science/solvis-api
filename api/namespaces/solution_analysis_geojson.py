@@ -125,26 +125,47 @@ class SolutionAnalysisGeojsonComposite(Resource):
     SolutionAnalysisGeojsonComposite handlers
     """
     @api.doc('get_solution_analysis_geojson ')
+    @api.param('min_rate', 'restrict ruptures to those having a annual rate above the value supplied.')
+    @api.param('max_rate', 'restricts ruptures to those having a annual rate below the value supplied.')
+    @api.param('min_mag', 'restricts ruptures to those having a magnitude above the value supplied.')
+    @api.param('max_mag', 'restricts ruptures to those having a magnitude below the value supplied.')
     @api.marshal_with(solution_analysis_composite_geojson_model)
     def get(self, solution_id, location_ids, radius_km):
         """
         GET handler
         """
-        #TODO fix this it's not working
+
         parser = reqparse.RequestParser()
-        parser.add_argument('rate_above', type=str,
-            help='include ruptures with an Annual Rate above this value  (default = 0)')
+        parser.add_argument('min_rate', type=float, default=None,
+            help='include ruptures with an Annual Rate above this value')
+        parser.add_argument('max_rate', type=float, default=None,
+            help='include ruptures with an Annual Rate above this value')
+        parser.add_argument('min_mag', type=float, default=None,
+            help='include ruptures with an Annual Rate above this value')
+        parser.add_argument('max_mag', type=float, default=None,
+            help='include ruptures with an Annual Rate above this value')
+
         args = parser.parse_args() or {}
         print ('args', args, self)
-        annual_rate_threshold=float(args.get('rate_above') or 0)
 
-        rupture_sections_gdf = matched_rupture_sections_gdf(solution_id, location_ids, radius_km*1000, minimum_rate=1e-12)
+        location_ids = ','.join(sorted(location_ids.split(',')))
 
+        rupture_sections_gdf = matched_rupture_sections_gdf(solution_id, location_ids, radius_km*1000,
+            min_rate=args.get('min_rate') or 1e-12,
+            max_rate=args.get('max_rate'), min_mag=args.get('min_mag'), max_mag=args.get('max_mag'))
+
+
+
+        test_sects = rupture_sections_gdf[rupture_sections_gdf['section_index'] == 128]
+        print(test_sects)
+
+        rupture_count = len(rupture_sections_gdf.rupture_index.unique()) if not rupture_sections_gdf is None else 0
         error_message = None
         geojson = json.dumps(dict(type="FeatureCollection", features= []))
-        if (not rupture_sections_gdf is None) and (rupture_sections_gdf.shape[0] > 1e4):
-            error_message = "Too many ruptures satisfy the query, please try a more selective query."
-        elif (rupture_sections_gdf is None) or  (rupture_sections_gdf.shape[0] == 0):
+
+        if rupture_count > 1e3:
+            error_message = "Too many rupture satisfy the query, please try a more selective query."
+        elif rupture_count == 0:
             error_message = "No ruptures satisfy the query."
         else:
             geojson = rupture_sections_gdf.to_json()
@@ -154,7 +175,7 @@ class SolutionAnalysisGeojsonComposite(Resource):
             location_ids = location_ids,
             radius_km = radius_km,
             ruptures = geojson,
-            rupture_count = int(rupture_sections_gdf.shape[0]) if not rupture_sections_gdf is None else 0,
+            rupture_count = rupture_count,
             error_message = error_message
             )
         return result

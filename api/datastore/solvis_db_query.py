@@ -1,6 +1,7 @@
 import logging
 import geopandas as gpd
 import pandas as pd
+from datetime import datetime as dt
 from typing import List, Iterator, Set
 
 #import solvis
@@ -24,7 +25,7 @@ def get_rupture_ids(solution_id:str, locations:List[str], radius:int, union:bool
         assert len(items) in [0,1]
         if len(items):
             item = items[0]
-            print(f'SLR query item: {item}, ruptures: {item.ruptures}')
+            #print(f'SLR query item: {item}, ruptures: {item.ruptures}')
             if not item.ruptures:
                 continue
             if union:
@@ -33,6 +34,7 @@ def get_rupture_ids(solution_id:str, locations:List[str], radius:int, union:bool
                 ids = ids.intersection(item.ruptures) if ids else set(item.ruptures)
     return ids or set()
 
+@lru_cache(maxsize=32)
 def get_ruptures(solution_id:str) -> gpd.GeoDataFrame:
     index = []
     values = []
@@ -41,6 +43,7 @@ def get_ruptures(solution_id:str) -> gpd.GeoDataFrame:
         index.append(item.rupture_index)
     return pd.DataFrame(values, index=index)
 
+@lru_cache(maxsize=32)
 def get_fault_sections(solution_id:str) -> gpd.GeoDataFrame:
     index = []
     values = []
@@ -52,8 +55,9 @@ def get_fault_sections(solution_id:str) -> gpd.GeoDataFrame:
     return gpd.GeoDataFrame(df, geometry=gpd.GeoSeries.from_wkt(df.geometry))
 
 @lru_cache(maxsize=32)
-def matched_rupture_sections_gdf(solution_id:str, locations:str, radius:int, minimum_rate:int, union:bool=False) -> gpd.GeoDataFrame:
+def matched_rupture_sections_gdf(solution_id:str, locations:str, radius:int, min_rate:float, max_rate: float, min_mag:float, max_mag: float, union:bool=False) -> gpd.GeoDataFrame:
 
+    t0 = dt.utcnow()
     locations = locations.split(',')
     print(locations)
 
@@ -62,12 +66,36 @@ def matched_rupture_sections_gdf(solution_id:str, locations:str, radius:int, min
     if not ids:
         return
 
+    t1 = dt.utcnow()
+    print(f'get_rupture_ids() (not cached), took {t1-t0}')
+
     ruptures_df = get_ruptures(solution_id)
     ruptures_df = ruptures_df[ruptures_df.rupture_index.isin(list(ids))]
 
-    if minimum_rate > 0:
-        print("apply rate filter")
-        ruptures_df = ruptures_df[ruptures_df.annual_rate > minimum_rate]
+    t2 = dt.utcnow()
+    print(f'get_ruptures() (maybe cached), took {t2-t1}')
+
+    if min_rate:
+        print(f"apply min rate filter: min={min_rate}")
+        ruptures_df = ruptures_df[ruptures_df.annual_rate > min_rate]
+
+    if max_rate:
+        print(f"apply max rate filter: max={max_rate}")
+        ruptures_df = ruptures_df[ruptures_df.annual_rate < max_rate]
+
+    if min_mag:
+        print(f"apply min magnitude filter: min={min_mag}")
+        ruptures_df = ruptures_df[ruptures_df.magnitude > min_mag]
+
+    if max_mag:
+        print(f"apply max magnitude filter: max={max_mag}")
+        ruptures_df = ruptures_df[ruptures_df.magnitude < max_mag]
+
+    t3 = dt.utcnow()
+    print(f'apply filters  took {t3-t2}')
+
+    if ruptures_df.empty:
+        return None
 
     print("Build RuptureSections df")
 
@@ -83,11 +111,19 @@ def matched_rupture_sections_gdf(solution_id:str, locations:str, radius:int, min
 
     rupture_sections_df = build_rupture_sections_df(ruptures_df)
 
+    t4 = dt.utcnow()
+    print(f'apply build_rupture_sections_df (not cached), took {t4-t3}')
+
     print("get fault sections GDF")
     sections_gdf = get_fault_sections(solution_id)
 
+    t5 = dt.utcnow()
+    print(f'apply get_fault_sections (maybe cached), took {t5-t4}')
+
     print("Assemble geojson")
     #join rupture details
+    print(rupture_sections_df)
+    print(ruptures_df)
     rupture_sections_df = rupture_sections_df\
         .join(ruptures_df, 'rupture_index', how='inner', rsuffix='_R')\
         .drop(columns=['fault_sections', 'rupture_index_R'])
@@ -100,8 +136,12 @@ def matched_rupture_sections_gdf(solution_id:str, locations:str, radius:int, min
     print(f'columns: {rupture_sections_gdf.columns}')
     print( rupture_sections_gdf[['rupture_index', 'section_index', 'fault_name', 'magnitude']] )
 
+    t6 = dt.utcnow()
+    print(f'Assemble geojson (not cached), took {t6-t5}')
+
+
     return rupture_sections_gdf.drop(columns = ['annual_rate', 'area_m2', 'length_m', 'magnitude',
-        'parent_id', 'parent_name', 'rupture_index', 'section_index_rk', 'solution_id', 'solution_id_R'] )
+        'parent_id', 'parent_name', 'section_index_rk', 'solution_id', 'solution_id_R'] )
 
 """
 "Feature\", \"properties\": {
