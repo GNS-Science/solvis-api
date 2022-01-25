@@ -114,7 +114,7 @@ def matched_rupture_sections_gdf(solution_id:str, locations:str, radius:int, min
     t4 = dt.utcnow()
     print(f'apply build_rupture_sections_df (not cached), took {t4-t3}')
 
-    print("get fault sections GDF")
+    #print("get fault sections GDF")
     sections_gdf = get_fault_sections(solution_id)
 
     t5 = dt.utcnow()
@@ -122,8 +122,8 @@ def matched_rupture_sections_gdf(solution_id:str, locations:str, radius:int, min
 
     print("Assemble geojson")
     #join rupture details
-    print(rupture_sections_df)
-    print(ruptures_df)
+    #print(rupture_sections_df)
+    #print(ruptures_df)
     rupture_sections_df = rupture_sections_df\
         .join(ruptures_df, 'rupture_index', how='inner', rsuffix='_R')\
         .drop(columns=['fault_sections', 'rupture_index_R'])
@@ -133,14 +133,13 @@ def matched_rupture_sections_gdf(solution_id:str, locations:str, radius:int, min
         .join (sections_gdf, 'section_index', how='inner', rsuffix='_R')\
         .drop(columns=['section_index_R'])
 
-    print(f'columns: {rupture_sections_gdf.columns}')
-    print( rupture_sections_gdf[['rupture_index', 'section_index', 'fault_name', 'magnitude']] )
+    #print(f'columns: {rupture_sections_gdf.columns}')
+    #print( rupture_sections_gdf[['rupture_index', 'section_index', 'fault_name', 'magnitude']] )
 
     t6 = dt.utcnow()
     print(f'Assemble geojson (not cached), took {t6-t5}')
 
-
-    return rupture_sections_gdf.drop(columns = ['annual_rate', 'area_m2', 'length_m', 'magnitude',
+    return rupture_sections_gdf.drop(columns = ['area_m2', 'length_m',
         'parent_id', 'parent_name', 'section_index_rk', 'solution_id', 'solution_id_R'] )
 
 """

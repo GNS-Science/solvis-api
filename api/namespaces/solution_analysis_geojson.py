@@ -30,87 +30,12 @@ api = Namespace('solution_analysis', description='Solution analysis related oper
 headers={"x-api-key":API_KEY}
 toshi_api = ToshiApi(API_URL, S3_URL, None, with_schema_validation=False, headers=headers)
 
-# @lru_cache(maxsize=32)
-# def get_inversion_solution(solution_id):
-#     WORK_PATH = "./tmp"
-#     log.info(f'get_inversion_solution: {solution_id}')
-#     filename = toshi_api.inversion_solution.download_inversion_solution(solution_id, WORK_PATH)
-#     return InversionSolution().from_archive(filename)
-# =======
-# @lru_cache(maxsize=32)
-# def get_inversion_solution(solution_id):
-#     if IS_OFFLINE:
-#         WORK_PATH = "./tmp"
-#     else:
-#         WORK_PATH = "/tmp"
-#     log.info(f'get_inversion_solution: {solution_id}')
-#     filename = toshi_api.inversion_solution.download_inversion_solution(solution_id, WORK_PATH)
-#     return InversionSolution().from_archive(filename)
-# >>>>>>> feature/CORS
-
-# @lru_cache(maxsize=32)
-# def get_solution_dataframe_result(_id):
-#     datastore = get_ds()
-#     solutions = datastore.resources.solutions
-#     try:
-#         log.info(f'get_solution_dataframe_result: {_id}')
-#         result = solutions.get(_id) #     5cd8df26-2370-4bbb-8e3d-03e6453e0c65
-
-#         pickle_bytes = io.BytesIO()
-#         pickle_bytes.write(result.dataframe)
-#         pickle_bytes.seek(0)
-
-#         result.dataframe = pd.read_pickle(pickle_bytes, 'xz').to_json(indent=2)
-
-#         return result
-#     except (solutions.DoesNotExist):
-#         api.abort(404)
-
-# @lru_cache(maxsize=32)
-# def get_solution_dataframe(_id):
-#     return pd.read_json(get_solution_dataframe_result(_id).dataframe)
-
-# def filter_dataframe(_id, location_id: str, radius_km: int, rate_threshold: float):
-
-#     df = get_solution_dataframe(_id) #cached
-
-#     def get_radii_map(df):
-#         rad_cols = {}
-#         for c in df.columns:
-#             if c[0] == 'r' and c[-2:] == 'km':
-#                 rad_cols[int(c[1:-2])] = c
-#         return rad_cols
-
-#     def where_city_in_radius(df: pd.DataFrame, radius_column: str, location_id: str):
-#         return df[radius_column].apply(lambda x: location_id in x if x else False) == True
-
-#     #get the radius column for first filter layer
-#     radius_map = get_radii_map( df )
-#     if not radius_km in radius_map.keys():
-#         api.abort(404, f'radius {radius_km} is not in {[k for k in radius_map.keys()]}')
-#     radius_column = radius_map[radius_km]
-
-#     print(get_radii_map( df ), radius_column)
-
-#     df2 = df[where_city_in_radius(df, radius_column, location_id)]
-#     if rate_threshold > 0:
-#         df2 = df2[df2['Annual Rate']>= rate_threshold]
-
-#     print(df2.shape)
-#     return df2
-
-# @lru_cache(maxsize=32)
-# def get_filtered_ruptures(dataframe_id, location_id, radius_km, annual_rate_threshold):
-#     filtered = filter_dataframe(dataframe_id, location_id, int(radius_km), float(annual_rate_threshold))
-#     return filtered
-
-
 solution_analysis_composite_geojson_model = api.model('Solution Analysis Geojson', dict(
     solution_id = fields.String(required=True, description='The unique identifier for the Inversion Solution.'),
     location_ids = fields.String(required=True, description='The location identifiers, comma-delmited list e.g. `WLG,PMR,ZQN`'),
     radius_km = fields.String(required=True, description='The rupture/location intersection radius in km.'),
     rupture_count = fields.Integer(),
-    created = fields.DateTime(description='The created timestamp'),
+    section_count = fields.Integer(),
     ruptures = fields.String(description='All the ruptures'),
     error_message = fields.String(description='Any problems')
     ))
@@ -154,21 +79,34 @@ class SolutionAnalysisGeojsonComposite(Resource):
             min_rate=args.get('min_rate') or 1e-12,
             max_rate=args.get('max_rate'), min_mag=args.get('min_mag'), max_mag=args.get('max_mag'))
 
+        rupture_count, section_count = 0, 0
+        if not rupture_sections_gdf is None:
+            # # Here we want to collapse all ruptures so we have just one feature for section. Each section can have the
+            # count of ruptures, min, mean, max magnitudes & annual rates
 
+            section_aggregates_gdf = rupture_sections_gdf.pivot_table(
+                index= ['section_index'],
+                aggfunc=dict(annual_rate=['sum', 'min', 'max'],
+                     magnitude=['count', 'min', 'max']))
 
-        test_sects = rupture_sections_gdf[rupture_sections_gdf['section_index'] == 128]
-        print(test_sects)
+            #print(section_aggregates_gdf)
+            #join the rupture_sections_gdf details
+            section_aggregates_gdf.columns = [".".join(a) for a in section_aggregates_gdf.columns.to_flat_index()]
+            section_aggregates_gdf = section_aggregates_gdf\
+                .join (rupture_sections_gdf, 'section_index', how='inner', rsuffix='_R')\
+                .drop(columns=['rupture_index','annual_rate', 'avg_rake',  'magnitude'])
 
-        rupture_count = len(rupture_sections_gdf.rupture_index.unique()) if not rupture_sections_gdf is None else 0
-        error_message = None
-        geojson = json.dumps(dict(type="FeatureCollection", features= []))
-
-        if rupture_count > 1e3:
-            error_message = "Too many rupture satisfy the query, please try a more selective query."
-        elif rupture_count == 0:
-            error_message = "No ruptures satisfy the query."
+            rupture_count = len(rupture_sections_gdf.rupture_index.unique()) if not rupture_sections_gdf is None else 0
+            section_count = section_aggregates_gdf.shape[0]
+            geojson = gpd.GeoDataFrame(section_aggregates_gdf).to_json()
         else:
-            geojson = rupture_sections_gdf.to_json()
+            geojson = json.dumps(dict(type="FeatureCollection", features= []))
+
+        error_message = None
+        if section_count > 10e3:
+            error_message = "Too many rupture sections satisfy the query, please try a more selective query."
+        elif section_count == 0:
+            error_message = "No ruptures satisfy the query."
 
         result = dict(
             solution_id = solution_id,
@@ -176,6 +114,7 @@ class SolutionAnalysisGeojsonComposite(Resource):
             radius_km = radius_km,
             ruptures = geojson,
             rupture_count = rupture_count,
+            section_count = section_count,
             error_message = error_message
             )
         return result
