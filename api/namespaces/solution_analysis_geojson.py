@@ -104,11 +104,6 @@ class SolutionAnalysisGeojsonComposite(Resource):
             rupture_count = rupture_sections_gdf['magnitude.count'].sum() if not rupture_sections_gdf is None else 0
             section_count = rupture_sections_gdf.shape[0]
             geojson = gpd.GeoDataFrame(rupture_sections_gdf).to_json()
-
-            #for now we're adding the circles to the ruptures
-            tmp_geojson = json.loads(geojson)
-            tmp_geojson['features'].extend(location_features)
-            geojson = json.dumps(tmp_geojson)
         else:
             geojson = json.dumps(dict(type="FeatureCollection", features= []))
 
