@@ -1,4 +1,5 @@
 from typing import List, Iterator, Dict
+
 import logging
 from functools import lru_cache
 
@@ -18,8 +19,9 @@ def get_location_radius_rupture_models(solution_id:str, sol: solvis.InversionSol
         for radius in radii:
             polygon = solvis.circle_polygon(radius_m=radius, lat=item['latitude'], lon=item['longitude'])
             rupts = set(sol.get_ruptures_intersecting(polygon).tolist())
+
             loc = item['id']
-            print(loc, radius, len(rupts))
+            #print(loc, radius, len(rupts))
 
             if len(rupts) > 1e5:
                 raise Exception(f"Too many ruptures in {loc} with radius {radius}: {len(rupts)}")

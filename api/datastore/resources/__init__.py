@@ -32,3 +32,8 @@ LOCATIONS = [
 {'id': 'HLZ', 'name': 'Hamilton', 'latitude': -37.7826, 'longitude': 175.2528, 'population': 165000.0},
 {'id': 'LYJ', 'name': 'Lower Hutt', 'latitude': -41.2127, 'longitude': 174.8997, 'population': 112000.0}]
 
+
+def location_by_id(location_code):
+	for itm in LOCATIONS:
+		if itm['id'] == location_code:
+			return itm
