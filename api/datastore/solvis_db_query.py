@@ -55,11 +55,14 @@ def get_ruptures(solution_id:str) -> gpd.GeoDataFrame:
 
 @lru_cache(maxsize=32)
 def get_fault_sections(solution_id:str) -> gpd.GeoDataFrame:
+    print(f">>> get_fault_sections({solution_id})")
     index = []
     values = []
     for item in mSFS.query(f'{solution_id}'):
         values.append(item.attribute_values)
         index.append(item.section_index)
+
+    print(f">>> get_fault_sections: post query, index has {len(index)}; values has {len(values)}")
 
     df = pd.DataFrame(values, index)
     return gpd.GeoDataFrame(df, geometry=gpd.GeoSeries.from_wkt(df.geometry))
