@@ -7,6 +7,8 @@ from typing import List, Iterator, Set
 from functools import lru_cache
 from api.datastore import model
 
+log = logging.getLogger(__name__)
+
 mSLR = model.SolutionLocationRadiusRuptureSet
 mSR = model.SolutionRupture
 mSFS = model.SolutionFaultSection
@@ -78,8 +80,12 @@ def matched_rupture_sections_gdf(solution_id:str, locations:str, radius:int,
     t1 = dt.utcnow()
     print(f'get_rupture_ids() (not cached), took {t1-t0}')
 
-    ruptures_df = get_ruptures(solution_id)
-    ruptures_df = ruptures_df[ruptures_df.rupture_index.isin(list(ids))]
+    try:
+        ruptures_df = get_ruptures(solution_id)
+        ruptures_df = ruptures_df[ruptures_df.rupture_index.isin(list(ids))]
+    except Exception as err:
+        log.error(err)
+        raise
 
     t2 = dt.utcnow()
     print(f'get_ruptures() (maybe cached), took {t2-t1}')
