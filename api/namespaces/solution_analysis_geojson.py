@@ -93,9 +93,13 @@ class SolutionAnalysisGeojsonComposite(Resource):
 
         location_ids = ','.join(sorted(location_ids.split(',')))
 
-        rupture_sections_gdf = matched_rupture_sections_gdf(solution_id, location_ids, radius_km*1000,
-            min_rate=args.get('min_rate') or 1e-20,
-            max_rate=args.get('max_rate'), min_mag=args.get('min_mag'), max_mag=args.get('max_mag'))
+        try:
+            rupture_sections_gdf = matched_rupture_sections_gdf(solution_id, location_ids, radius_km*1000,
+                min_rate=args.get('min_rate') or 1e-20,
+                max_rate=args.get('max_rate'), min_mag=args.get('min_mag'), max_mag=args.get('max_mag'))
+        except Exception as err:
+            log.error(err)
+            api.abort(500)
 
         location_features = locations_geojson(location_ids.split(','), radius_km)
 
