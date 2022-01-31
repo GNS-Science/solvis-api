@@ -4,27 +4,21 @@ from pynamodb.models import Model
 
 from datetime import datetime
 
-from api.config import REGION
+from api.config import REGION, DEPLOYMENT_STAGE
 
 import logging
 
-logging.basicConfig()
 log = logging.getLogger("pynamodb")
-log.setLevel(logging.INFO)
-log.propagate = True
+# log.setLevel(logging.DEBUG)
 
 class SolutionLocationRadiusRuptureSet(Model):
     class Meta:
-        read_capacity_units = 10
-        write_capacity_units = 20
-        table_name = "SolutionLocationRadiusRuptureSet"
+        billing_mode = 'PAY_PER_REQUEST'
+        table_name = f"SolutionLocationRadiusRuptureSet-{DEPLOYMENT_STAGE}"
         region = REGION
 
-    #solution_location_radius = UnicodeAttribute(hash_key=True)
     solution_id = UnicodeAttribute(hash_key=True)
     location_radius = UnicodeAttribute(range_key=True) #eg WLG-10000
-
-    #capture the secondary range attributes - maybe a separate/sub/attribure model??
 
     radius = NumberAttribute()
     location = UnicodeAttribute()
@@ -33,14 +27,14 @@ class SolutionLocationRadiusRuptureSet(Model):
 
 class SolutionRupture(Model):
     class Meta:
-        read_capacity_units = 10
-        write_capacity_units = 20
-        table_name = "SolutionRupture"
+        billing_mode = 'PAY_PER_REQUEST'
+        table_name = f"SolutionRupture-{DEPLOYMENT_STAGE}"
         region = REGION
 
     solution_id = UnicodeAttribute(hash_key=True)
-    rupture_index = NumberAttribute(range_key=True)
+    rupture_index_rk = UnicodeAttribute(range_key=True)
 
+    rupture_index = NumberAttribute()
     magnitude = NumberAttribute()     # Magnitude,
     avg_rake = NumberAttribute()      # Average Rake (degrees),
     area_m2 = NumberAttribute()       # Area (m^2),
@@ -50,16 +44,14 @@ class SolutionRupture(Model):
 
 class SolutionFaultSection(Model):
     class Meta:
-        read_capacity_units = 10
-        write_capacity_units = 20
-        table_name = "SolutionFaultSection"
+        billing_mode = 'PAY_PER_REQUEST'
+        table_name = f"SolutionFaultSection-{DEPLOYMENT_STAGE}"
         region = REGION
 
     solution_id = UnicodeAttribute(hash_key=True)
     section_index_rk = UnicodeAttribute(range_key=True)
 
     section_index = NumberAttribute()
-
     fault_name = UnicodeAttribute()
     dip_degree = NumberAttribute()
     rake = NumberAttribute()
@@ -88,7 +80,7 @@ def drop_all(*args, **kwargs):
     """
     drop all the tables etc
     """
-    log.info("Drop allcalled")
+    log.info("Drop all called")
     for table in table_classes:
         if table.exists():
             table.delete_table()
@@ -97,6 +89,9 @@ def drop_all(*args, **kwargs):
 def migrate(*args, **kwargs):
     """
     setup the tables etc
+
+    NB: seamless dynamodDB schema migrations are gonna be interesting
+    see https://stackoverflow.com/questions/31301160/change-the-schema-of-a-dynamodb-table-what-is-the-best-recommended-way
     """
     log.info("Migrate called")
     for table in table_classes:

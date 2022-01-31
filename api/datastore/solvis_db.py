@@ -49,6 +49,7 @@ def get_ruptures_with_rates(solution_id, sol) -> Iterator[model.SolutionRupture]
         sections = [int(x) for x in rs[rs.rupture==int(row[1])].section.tolist()]
         yield model.SolutionRupture(
             solution_id = solution_id,
+            rupture_index_rk = str(row[1]),
             rupture_index = int(row[1]),
             magnitude = float(row[2]),     # Magnitude,
             avg_rake = float(row[3]),      # Average Rake (degrees),

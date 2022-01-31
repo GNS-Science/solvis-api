@@ -29,7 +29,7 @@ custom:
 
   # DRY constants: define all compound/generated names in one place
   # Override args are: .. defaults:
-  # --app_acroym          signed-uploader
+  # --app_acronym          signed-uploader
   # --s3_bucket           self:custom.app_acronym
   # --s3_key_base         self:custom.stage
   # --region              us-east-1
@@ -44,10 +44,8 @@ custom:
   deletion_policy: Delete
   topic_name: ${self:custom.stack_name}-analyse-inversion-solution
   topic_arn: arn:aws:sns:${self:custom.region}:${aws:accountId}:${self:custom.topic_name}
-  #topic_arn: arn:aws:sns:ap-southeast-2:123456789012:${self:custom.topic_name}
   solvis_api_url: TODO-${self:custom.stage}
   http_api_path: /${self.custom.stage}
-
 
   #serverless-wsgi settings
   wsgi:
@@ -119,12 +117,15 @@ functions:
     #timeout: 5 # optional, in seconds, default is 6
     environment:
       SNS_TOPIC_ARN: ${self:custom.topic_arn}
-      IS_OFFLINE: ${env:SLS_OFFLINE}
+      SLS_OFFLINE: ${env:SLS_OFFLINE}
+      DEPLOYMENT_STAGE: ${self:custom.stage}
+
       #API_ENDPOINT: ${env:NZSHM22_SOLVIS_API_URL}
       NZSHM22_TOSHI_API_URL: ${env:NZSHM22_TOSHI_API_URL}
       NZSHM22_TOSHI_API_ENABLED: ${env:NZSHM22_TOSHI_API_ENABLED}
       NZSHM22_TOSHI_API_KEY: ${env:NZSHM22_TOSHI_API_KEY}
       NZSHM22_TOSHI_S3_URL: ${env:NZSHM22_TOSHI_S3_URL}
+
     events:
       - http: ANY /
       - http: 'ANY {proxy+}'
@@ -144,5 +145,6 @@ functions:
       NZSHM22_TOSHI_API_ENABLED: ${env:NZSHM22_TOSHI_API_ENABLED}
       NZSHM22_TOSHI_API_KEY: ${env:NZSHM22_TOSHI_API_KEY}
       NZSHM22_TOSHI_S3_URL: ${env:NZSHM22_TOSHI_S3_URL}
-      IS_OFFLINE: ${env:SLS_OFFLINE}
+      SLS_OFFLINE: ${env:SLS_OFFLINE}
+      DEPLOYMENT_STAGE: ${self:custom.stage}
 

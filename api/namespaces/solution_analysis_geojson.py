@@ -2,6 +2,7 @@
 
 import io
 import json
+from datetime import datetime as dt
 from functools import lru_cache
 import pandas as pd
 import geopandas as gpd
@@ -15,7 +16,6 @@ from api.toshi_api.toshi_api import ToshiApi
 # Set up your local config, from environment variables, with some sone defaults
 from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL, SNS_TOPIC_ARN, IS_OFFLINE)
 from api.solvis import multi_city_events
-#from api.datastore.datastore import get_ds
 
 from solvis import InversionSolution, new_sol, section_participation, circle_polygon
 from api.datastore.solvis_db_query import matched_rupture_sections_gdf
@@ -24,7 +24,7 @@ from api.datastore.resources import location_by_id
 import logging
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+#log.setLevel(logging.DEBUG)
 
 api = Namespace('solution_analysis', description='Solution analysis related operations')
 
@@ -77,6 +77,7 @@ class SolutionAnalysisGeojsonComposite(Resource):
         """
         GET handler
         """
+        t0 = dt.utcnow()
 
         parser = reqparse.RequestParser()
         parser.add_argument('min_rate', type=float, default=None,
@@ -89,7 +90,7 @@ class SolutionAnalysisGeojsonComposite(Resource):
             help='include ruptures with an Annual Rate above this value')
 
         args = parser.parse_args() or {}
-        print ('args', args, self)
+        log.debug(f'args {args}')
 
         location_ids = ','.join(sorted(location_ids.split(',')))
 
@@ -127,5 +128,7 @@ class SolutionAnalysisGeojsonComposite(Resource):
             section_count = section_count,
             error_message = error_message
             )
-        print(f"{solution_id}, {location_ids}, {radius_km}, {rupture_count} {section_count}")
+        log.debug(f"{solution_id}, {location_ids}, {radius_km}, {rupture_count} {section_count}")
+        t1 = dt.utcnow()
+        log.info(f'SolutionAnalysis for id:{solution_id}, locs:{location_ids}, radius:{radius_km} took {t1-t0}')
         return result
