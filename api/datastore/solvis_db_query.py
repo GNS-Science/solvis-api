@@ -5,7 +5,9 @@ from datetime import datetime as dt
 from typing import List, Iterator, Set
 
 from functools import lru_cache
+
 from api.datastore import model
+from api.cloudwatch import ServerlessMetricWriter
 
 log = logging.getLogger(__name__)
 
@@ -13,8 +15,14 @@ mSLR = model.SolutionLocationRadiusRuptureSet
 mSR = model.SolutionRupture
 mSFS = model.SolutionFaultSection
 
+db_metrics = ServerlessMetricWriter(lambda_name='nzshm22-solvis-api-test', metric_name="MethodDuration")
+db_metrics_hr = ServerlessMetricWriter(lambda_name='nzshm22-solvis-api-test', metric_name="MethodDuration", resolution=1)
+
 # QUERY operations for the API get endpoint(s)
 def get_rupture_ids(solution_id:str, locations:List[str], radius:int, union:bool =True) -> Set[int]:
+
+    t0 = dt.utcnow()
+
     fullset = set(range(10000))
     ids = set() if union else fullset
 
@@ -41,12 +49,16 @@ def get_rupture_ids(solution_id:str, locations:List[str], radius:int, union:bool
             else:
                 ids = ids.intersection(item.ruptures)
 
+    t1 = dt.utcnow()
+    db_metrics.put_duration(__name__, 'get_rupture_ids' , t1-t0)
+
     #if no change to fullset (for intersection) return an empty set
     return set() if ids is fullset else ids
 
 @lru_cache(maxsize=256)
 def get_ruptures_in(solution_id:str, rupture_ids: tuple) -> gpd.GeoDataFrame:
     log.debug(f">>> get_ruptures_in({solution_id}...)")
+    t0 = dt.utcnow()
     index = []
     values = []
 
@@ -58,10 +70,14 @@ def get_ruptures_in(solution_id:str, rupture_ids: tuple) -> gpd.GeoDataFrame:
     for i in range(int(len(rupture_ids)/chunksize)+1):
         idx = i*chunksize
         ids = rupture_ids[idx:idx+chunksize]
+        t00 = dt.utcnow()
         for item in mSR.query(f'{solution_id}',
             filter_condition=mSR.rupture_index.is_in(*ids)):
             values.append(item.attribute_values)
             index.append(item.rupture_index)
+        db_metrics_hr.put_duration(__name__, 'get_ruptures_in[query_chunk]' , dt.utcnow()-t00)
+
+    db_metrics.put_duration(__name__, 'get_ruptures_in' , dt.utcnow()-t0)
     log.debug(item.attribute_values)
     log.debug(f">>> get_ruptures_in: index has {len(index)}; values has {len(values)}")
     return pd.DataFrame(values, index=index)
@@ -69,11 +85,14 @@ def get_ruptures_in(solution_id:str, rupture_ids: tuple) -> gpd.GeoDataFrame:
 @lru_cache(maxsize=32)
 def get_ruptures(solution_id:str) -> gpd.GeoDataFrame:
     log.debug(f">>> get_ruptures({solution_id})")
+    t0 = dt.utcnow()
     index = []
     values = []
     for item in mSR.query(f'{solution_id}'):
         values.append(item.attribute_values)
         index.append(item.rupture_index)
+
+    db_metrics.put_duration(__name__, 'get_ruptures' , dt.utcnow()-t0)
     log.debug(item.attribute_values)
     log.debug(f">>> get_ruptures: now index has {len(index)}; values has {len(values)}")
     return pd.DataFrame(values, index=index)
@@ -81,11 +100,13 @@ def get_ruptures(solution_id:str) -> gpd.GeoDataFrame:
 @lru_cache(maxsize=32)
 def get_fault_sections(solution_id:str) -> gpd.GeoDataFrame:
     log.debug(f">>> get_fault_sections({solution_id})")
+    t0 = dt.utcnow()
     index = []
     values = []
     for item in mSFS.query(f'{solution_id}'):
         values.append(item.attribute_values)
         index.append(item.section_index)
+    db_metrics_hr.put_duration(__name__, 'get_fault_sections[query]' , dt.utcnow()-t0)
     log.debug(f">>> get_fault_sections: post query, index has {len(index)}; values has {len(values)}")
     df = pd.DataFrame(values, index)
     return gpd.GeoDataFrame(df, geometry=gpd.GeoSeries.from_wkt(df.geometry))
@@ -195,5 +216,6 @@ def matched_rupture_sections_gdf(solution_id:str, locations:str, radius:int,
     section_aggregates_gdf = section_aggregates_gdf\
         .join (sections_gdf, 'section_index', how='inner', rsuffix='_R')
 
+    db_metrics.put_duration(__name__, 'matched_rupture_sections_gdf' , dt.utcnow()-t0)
     return section_aggregates_gdf
 

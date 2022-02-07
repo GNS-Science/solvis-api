@@ -2,16 +2,32 @@
 from pynamodb.attributes import UnicodeAttribute, JSONAttribute, UTCDateTimeAttribute, NumberAttribute, NumberSetAttribute
 from pynamodb.models import Model
 
-from datetime import datetime
+from datetime import datetime as dt
 
 from api.config import REGION, DEPLOYMENT_STAGE
+from api.cloudwatch import ServerlessMetricWriter
 
 import logging
 
 log = logging.getLogger("pynamodb")
 # log.setLevel(logging.DEBUG)
 
-class SolutionLocationRadiusRuptureSet(Model):
+db_metrics = ServerlessMetricWriter(lambda_name='nzshm22-solvis-api-test', metric_name="MethodDuration", resolution=1)
+
+
+class MetricatedModel(Model):
+
+    @classmethod
+    def query(cls, *args, **kwargs):
+        t0 = dt.utcnow()
+        print(cls, cls.__class__)
+        res = super(MetricatedModel, cls).query(*args, **kwargs)
+        t1 = dt.utcnow()
+        db_metrics.put_duration(__name__, f'{cls.__name__}.query' , t1-t0)
+        return res
+
+
+class SolutionLocationRadiusRuptureSet(MetricatedModel):
     class Meta:
         billing_mode = 'PAY_PER_REQUEST'
         table_name = f"SolutionLocationRadiusRuptureSet-{DEPLOYMENT_STAGE}"
@@ -25,7 +41,8 @@ class SolutionLocationRadiusRuptureSet(Model):
     ruptures = NumberSetAttribute() #Rupture Index,
     rupture_count = NumberAttribute()
 
-class SolutionRupture(Model):
+
+class SolutionRupture(MetricatedModel):
     class Meta:
         billing_mode = 'PAY_PER_REQUEST'
         table_name = f"SolutionRupture-{DEPLOYMENT_STAGE}"
@@ -42,7 +59,7 @@ class SolutionRupture(Model):
     annual_rate = NumberAttribute()   # Annual Rate
     fault_sections = NumberSetAttribute()
 
-class SolutionFaultSection(Model):
+class SolutionFaultSection(MetricatedModel):
     class Meta:
         billing_mode = 'PAY_PER_REQUEST'
         table_name = f"SolutionFaultSection-{DEPLOYMENT_STAGE}"

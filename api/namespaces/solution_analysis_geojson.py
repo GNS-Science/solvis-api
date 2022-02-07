@@ -23,6 +23,10 @@ from api.datastore.resources import location_by_id
 
 import logging
 
+from api.cloudwatch import ServerlessMetricWriter
+
+db_metrics = ServerlessMetricWriter(lambda_name='nzshm22-solvis-api-test', metric_name="MethodDuration")
+
 log = logging.getLogger(__name__)
 #log.setLevel(logging.DEBUG)
 
@@ -130,5 +134,6 @@ class SolutionAnalysisGeojsonComposite(Resource):
             )
         log.debug(f"{solution_id}, {location_ids}, {radius_km}, {rupture_count} {section_count}")
         t1 = dt.utcnow()
+        db_metrics.put_duration(__name__, f'{self.__class__.__name__}.get' , t1-t0)
         log.info(f'SolutionAnalysis for id:{solution_id}, locs:{location_ids}, radius:{radius_km} took {t1-t0}')
         return result

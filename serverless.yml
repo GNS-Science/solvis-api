@@ -103,6 +103,7 @@ provider:
          - "dynamodb:GetItem"
          - "dynamodb:PutItem"
          - "SNS:Publish"
+         - "cloudwatch:PutMetricData"
        Resource: "*"
 
   apiKeys:
@@ -116,6 +117,7 @@ functions:
     memorySize: 5120 # optional, in MB, default is 1024
     #timeout: 5 # optional, in seconds, default is 6
     environment:
+      STACK_NAME: ${self:custom.stack_name}
       SNS_TOPIC_ARN: ${self:custom.topic_arn}
       SLS_OFFLINE: ${env:SLS_OFFLINE}
       DEPLOYMENT_STAGE: ${self:custom.stage}
@@ -127,8 +129,21 @@ functions:
       NZSHM22_TOSHI_S3_URL: ${env:NZSHM22_TOSHI_S3_URL}
 
     events:
-      - http: ANY /
-      - http: 'ANY {proxy+}'
+      - http:
+          path: /
+          method: OPTIONS
+      - http:
+          path: '{proxy+}'
+          method: OPTIONS
+      - http:
+          path: /
+          method: ANY
+          private: true
+      - http:
+          path: '{proxy+}'
+          method: ANY
+          private: true
+
 
   analyse-inversion-solution:
     description: The analysis handler of ${self:service}
