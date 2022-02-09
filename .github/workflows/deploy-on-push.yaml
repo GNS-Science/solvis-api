@@ -1,0 +1,44 @@
+name: Deploy On Push
+
+on:
+  push:
+    branches: [ deploy-test ]
+
+jobs:
+  call-test-workflow:
+    #https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
+    uses: .github/workflows/run-tests-on-pull-request.yaml
+
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      STAGE: ${{ secrets.STAGE }}
+      NZSHM22_SOLVIS_API_KEY: ${{ secrets.NZSHM22_SOLVIS_API_KEY }}
+      NZSHM22_SOLVIS_API_URL: ${{ secrets.NZSHM22_SOLVIS_API_URL }}
+      NZSHM22_TOSHI_API_ENABLED: ${{ secrets.NZSHM22_TOSHI_API_ENABLED }}
+      NZSHM22_TOSHI_API_KEY: ${{ secrets.NZSHM22_TOSHI_API_KEY }}
+      NZSHM22_TOSHI_API_URL: ${{ secrets.NZSHM22_TOSHI_API_URL }}
+      SLS_OFFLINE: ${{ secrets.SLS_OFFLINE }}
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+    steps:
+      - uses: actions/checkout@master
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install Dependencies
+        run: npm install
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_TOSHI_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_TOSHI_SECRET_ACCESS_KEY }}
+          aws-region: ap-southeast-2
+
+      - name: Serverless Deploy ....
+        run: npm run-script deploy --stage ${STAGE}
+
+

@@ -1,12 +1,11 @@
-name: test-on-push
+name: Run Tests On PullRequest
 
 on:
-  push:
-    branches:
-      - deploy-test
+  pull_request:
+    branches: [ deploy-test ]
 
 jobs:
-  test:
+  run_unit_tests:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
