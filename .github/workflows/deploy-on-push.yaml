@@ -7,7 +7,7 @@ on:
 jobs:
   call-test-workflow:
     #https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
-    uses: .github/workflows/run-tests-on-pull-request.yaml
+    uses: .github/workflows/run-tests-on-pull-request.yaml@v1
 
   deploy:
     runs-on: ubuntu-latest
@@ -22,7 +22,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x]
+        node-version: [15.x]
     steps:
       - uses: actions/checkout@master
       - name: Use Node.js ${{ matrix.node-version }}
