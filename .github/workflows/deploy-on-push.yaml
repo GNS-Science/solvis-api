@@ -7,7 +7,7 @@ on:
 jobs:
   call-test-workflow:
     #https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
-    uses: GNS-Science/solvis-api/.github/workflows/run-tests.yaml@e02187faaaf5cdc152bffdb9a3ece09b4bf61af3
+    uses: GNS-Science/solvis-api/.github/workflows/run-tests.yaml@deploy-test
 
   deploy:
     runs-on: ubuntu-latest
