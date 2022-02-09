@@ -1,9 +1,9 @@
-from shutil import copy
-
+# from shutil import copy
 
 import unittest
-from api.api import create_app
+from moto import mock_dynamodb2
 
+from api.api import create_app
 from api.datastore.datastore import get_datastore
 
 # Set up your local config, from environment variables, with some sone defaults
@@ -30,6 +30,7 @@ class BaseTestCase(unittest.TestCase):
         app.config["TESTING"] = True
         self.client =  app.test_client()
 
+@mock_dynamodb2
 class TestLocationList(BaseTestCase):
 
     def test_get_all(self):
@@ -42,7 +43,7 @@ class TestLocationList(BaseTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, TestResources.LOCATION_LISTS[0])
 
-
+@mock_dynamodb2
 class TestLocation(BaseTestCase):
 
     def test_get_all(self):

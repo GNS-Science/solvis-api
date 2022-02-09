@@ -11,6 +11,7 @@ Fiona==1.8.20
 Flask==2.0.2
 Flask-RESTful==0.3.9
 flask-restx==0.5.1
+Flask-Cors==3.0.10
 geopandas==0.10.2
 gql==2.0.0
 graphql-core==2.3.2
@@ -36,7 +37,7 @@ Rx==1.6.1
 s3transfer==0.5.0
 Shapely==1.8.0
 six==1.16.0
-solvis @ git+https://github.com/GNS-Science/solvis@1e9af87a60b771701f0bceaa42def032f5fdce58
+solvis @ git+https://github.com/GNS-Science/solvis@66c3a514568d10d8a288ad48c9341a1786d76be8
 urllib3==1.26.7
 Werkzeug==2.0.2
 zipp==3.7.0

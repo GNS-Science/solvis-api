@@ -1,6 +1,6 @@
 
 from flask import g, current_app, _app_ctx_stack
-from .model import SolutionLocationsRadiiDF
+# from .model import SolutionLocationsRadiiDF
 
 import api.datastore.resources
 
@@ -37,7 +37,7 @@ class Datastore(object):
 
     def configure(self, resources):
         self._resources = resources
-        self._resources.solutions = SolutionLocationsRadiiDF
+        # self._resources.solutions = SolutionLocationsRadiiDF
 
 
     @property

@@ -12,7 +12,7 @@ LOCATIONS = [
 {'id': 'CHC', 'name': 'Christchurch', 'latitude': -43.52565, 'longitude': 172.639847, 'population': 300000.0},
 {'id': 'IVC', 'name': 'Invercargill', 'latitude': -46.413056, 'longitude': 168.3475, 'population': 80000.0},
 {'id': 'DUD', 'name': 'Dunedin', 'latitude': -45.8740984, 'longitude': 170.5035755, 'population': 100000.0},
-{'id': 'NPE', 'name': 'Nlocation_listser', 'latitude': -39.4902099, 'longitude': 176.917839, 'population': 80000.0},
+{'id': 'NPE', 'name': 'Napier', 'latitude': -39.4902099, 'longitude': 176.917839, 'population': 80000.0},
 {'id': 'NPL', 'name': 'New Plymouth', 'latitude': -39.0579941, 'longitude': 174.0806474, 'population': 80000.0},
 {'id': 'PMR', 'name': 'Palmerston North', 'latitude': -40.356317, 'longitude': 175.6112388, 'population': 70000.0},
 {'id': 'NSN', 'name': 'Nelson', 'latitude': -41.2710849, 'longitude': 173.2836756, 'population': 80000.0},
@@ -32,3 +32,8 @@ LOCATIONS = [
 {'id': 'HLZ', 'name': 'Hamilton', 'latitude': -37.7826, 'longitude': 175.2528, 'population': 165000.0},
 {'id': 'LYJ', 'name': 'Lower Hutt', 'latitude': -41.2127, 'longitude': 174.8997, 'population': 112000.0}]
 
+
+def location_by_id(location_code):
+	for itm in LOCATIONS:
+		if itm['id'] == location_code:
+			return itm

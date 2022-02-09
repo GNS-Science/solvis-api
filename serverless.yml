@@ -29,7 +29,7 @@ custom:
 
   # DRY constants: define all compound/generated names in one place
   # Override args are: .. defaults:
-  # --app_acroym          signed-uploader
+  # --app_acronym          signed-uploader
   # --s3_bucket           self:custom.app_acronym
   # --s3_key_base         self:custom.stage
   # --region              us-east-1
@@ -44,10 +44,8 @@ custom:
   deletion_policy: Delete
   topic_name: ${self:custom.stack_name}-analyse-inversion-solution
   topic_arn: arn:aws:sns:${self:custom.region}:${aws:accountId}:${self:custom.topic_name}
-  #topic_arn: arn:aws:sns:ap-southeast-2:123456789012:${self:custom.topic_name}
   solvis_api_url: TODO-${self:custom.stage}
   http_api_path: /${self.custom.stage}
-
 
   #serverless-wsgi settings
   wsgi:
@@ -105,6 +103,7 @@ provider:
          - "dynamodb:GetItem"
          - "dynamodb:PutItem"
          - "SNS:Publish"
+         - "cloudwatch:PutMetricData"
        Resource: "*"
 
   apiKeys:
@@ -115,25 +114,42 @@ functions:
   app:
     description: The REST API of ${self:service}
     handler: wsgi_handler.handler
-    memorySize: 384 # optional, in MB, default is 1024
+    memorySize: 5120 # optional, in MB, default is 1024
     #timeout: 5 # optional, in seconds, default is 6
     environment:
+      STACK_NAME: ${self:custom.stack_name}
       SNS_TOPIC_ARN: ${self:custom.topic_arn}
-      IS_OFFLINE: ${env:SLS_OFFLINE}
-      API_ENDPOINT: ${env:NZSHM22_SOLVIS_API_URL}
+      SLS_OFFLINE: ${env:SLS_OFFLINE}
+      DEPLOYMENT_STAGE: ${self:custom.stage}
+
+      #API_ENDPOINT: ${env:NZSHM22_SOLVIS_API_URL}
       NZSHM22_TOSHI_API_URL: ${env:NZSHM22_TOSHI_API_URL}
       NZSHM22_TOSHI_API_ENABLED: ${env:NZSHM22_TOSHI_API_ENABLED}
       NZSHM22_TOSHI_API_KEY: ${env:NZSHM22_TOSHI_API_KEY}
       NZSHM22_TOSHI_S3_URL: ${env:NZSHM22_TOSHI_S3_URL}
+
     events:
-      - http: ANY /
-      - http: 'ANY {proxy+}'
+      - http:
+          path: /
+          method: OPTIONS
+      - http:
+          path: '{proxy+}'
+          method: OPTIONS
+      - http:
+          path: /
+          method: ANY
+          private: true
+      - http:
+          path: '{proxy+}'
+          method: ANY
+          private: true
+
 
   analyse-inversion-solution:
     description: The analysis handler of ${self:service}
-    handler: api/analysis.handler
+    handler: api/process_solution.handler
     memorySize: 2048 # optional, in MB, default is 1024
-    timeout: 900 # optional, in seconds, default is 6
+    timeout: 300 # optional, in seconds, default is 6
     events:
       - sns:
           topicName: ${self:custom.topic_name}         #${self:custom.topic_arn}
@@ -144,5 +160,6 @@ functions:
       NZSHM22_TOSHI_API_ENABLED: ${env:NZSHM22_TOSHI_API_ENABLED}
       NZSHM22_TOSHI_API_KEY: ${env:NZSHM22_TOSHI_API_KEY}
       NZSHM22_TOSHI_S3_URL: ${env:NZSHM22_TOSHI_S3_URL}
-      IS_OFFLINE: ${env:SLS_OFFLINE}
+      SLS_OFFLINE: ${env:SLS_OFFLINE}
+      DEPLOYMENT_STAGE: ${self:custom.stage}
 

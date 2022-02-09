@@ -92,7 +92,7 @@ API_KEY = os.getenv('NZSHM22_TOSHI_API_KEY', "")
 WORK_PATH = os.getenv('NZSHM22_SCRIPT_WORK_PATH', "/tmp")
 SNS_TOPIC_ARN  = os.getenv('SNS_TOPIC_ARN')
 
-IS_OFFLINE = boolean_env('IS_OFFLINE') #set by serverless-wsgi plugin
+IS_OFFLINE = boolean_env('SLS_OFFLINE') #set by serverless-wsgi plugin
 
 if IS_OFFLINE:
    SOLVIS_API_URL = 'http://localhost:5000'
@@ -100,3 +100,6 @@ else:
    SOLVIS_API_URL = os.getenv('NZSHM22_SOLVIS_API_URL', 'https://ly86h01a86.execute-api.ap-southeast-2.amazonaws.com/dev/')
    
 SOLVIS_API_KEY = os.getenv('NZSHM22_SOLVIS_API_KEY', '')
+
+REGION = os.getenv('REGION', 'us-east-1')
+DEPLOYMENT_STAGE = os.getenv('DEPLOYMENT_STAGE', 'LOCAL').upper()
