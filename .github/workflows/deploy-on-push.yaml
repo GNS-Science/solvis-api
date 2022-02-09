@@ -11,15 +11,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    env:
-      STAGE: ${{ secrets.STAGE }}
-      NZSHM22_SOLVIS_API_KEY: ${{ secrets.NZSHM22_SOLVIS_API_KEY }}
-      NZSHM22_SOLVIS_API_URL: ${{ secrets.NZSHM22_SOLVIS_API_URL }}
-      NZSHM22_TOSHI_API_ENABLED: ${{ secrets.NZSHM22_TOSHI_API_ENABLED }}
-      NZSHM22_TOSHI_API_KEY: ${{ secrets.NZSHM22_TOSHI_API_KEY }}
-      NZSHM22_TOSHI_API_URL: ${{ secrets.NZSHM22_TOSHI_API_URL }}
-      SLS_OFFLINE: ${{ secrets.SLS_OFFLINE }}
-
+    
     strategy:
       matrix:
         node-version: [15.x]
@@ -40,5 +32,12 @@ jobs:
 
       - name: Serverless Deploy ....
         run: npm run-script deploy
-
+        env:
+          STAGE: ${{ secrets.STAGE }}
+          NZSHM22_SOLVIS_API_KEY: ${{ secrets.NZSHM22_SOLVIS_API_KEY }}
+          NZSHM22_SOLVIS_API_URL: ${{ secrets.NZSHM22_SOLVIS_API_URL }}
+          NZSHM22_TOSHI_API_ENABLED: ${{ secrets.NZSHM22_TOSHI_API_ENABLED }}
+          NZSHM22_TOSHI_API_KEY: ${{ secrets.NZSHM22_TOSHI_API_KEY }}
+          NZSHM22_TOSHI_API_URL: ${{ secrets.NZSHM22_TOSHI_API_URL }}
+          SLS_OFFLINE: ${{ secrets.SLS_OFFLINE }}
 
