@@ -37,7 +37,6 @@ class TestLocationList(BaseTestCase):
         response = self.client.get('/location_lists/')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, TestResources.LOCATION_LISTS)
-        assert 0
         
     def test_get_one(self):
         response = self.client.get('/location_lists/N1')
