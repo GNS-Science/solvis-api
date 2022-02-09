@@ -7,7 +7,7 @@ on:
 jobs:
   call-test-workflow:
     #https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
-    uses: .github/workflows/run-tests-on-pull-request.yaml@v1
+    uses: ./.github/workflows/run-tests-on-pull-request.yaml@v1
 
   deploy:
     runs-on: ubuntu-latest
