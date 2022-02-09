@@ -39,6 +39,6 @@ jobs:
           aws-region: ap-southeast-2
 
       - name: Serverless Deploy ....
-        run: npm run-script deploy --stage ${STAGE}
+        run: npm run-script deploy
 
 
