@@ -34,7 +34,7 @@ class SolutionLocationRadiusRuptureSet(MetricatedModel):
         region = REGION
 
     solution_id = UnicodeAttribute(hash_key=True)
-    location_radius = UnicodeAttribute(range_key=True) #eg WLG-10000
+    location_radius = UnicodeAttribute(range_key=True) #eg WLG:10000
 
     radius = NumberAttribute()
     location = UnicodeAttribute()
@@ -89,9 +89,9 @@ table_classes = (
     SolutionFaultSection
 )
 
-def set_local_mode(host="http://localhost:8000"):
-    for table in table_classes:
-        table.Meta.host = host
+# def set_local_mode(host="http://localhost:8000"):
+#     for table in table_classes:
+#         table.Meta.host = host
 
 def drop_all(*args, **kwargs):
     """
