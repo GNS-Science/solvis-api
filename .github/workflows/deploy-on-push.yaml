@@ -10,6 +10,7 @@ jobs:
     uses: GNS-Science/solvis-api/.github/workflows/run-tests.yaml@deploy-test
 
   deploy:
+    needs: call-test-workflow
     environment: AWS_TEST
     runs-on: ubuntu-latest
     
