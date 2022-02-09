@@ -7,7 +7,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy": "serverless deploy --stage ${STAGE}"
+    "deploy-test": "serverless deploy --stage test"
   },
   "repository": {
     "type": "git",
