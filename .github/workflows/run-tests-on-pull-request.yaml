@@ -2,7 +2,7 @@ name: Run Tests On PullRequest
 
 on:
   pull_request:
-    branches: [ deploy-test ]
+    branches: [ deploy-test, main ]
 
 jobs:
   call-test-workflow:
