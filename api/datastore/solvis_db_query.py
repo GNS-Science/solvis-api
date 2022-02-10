@@ -43,6 +43,10 @@ def get_rupture_ids(solution_id:str, locations:List[str], radius:int, union:bool
             continue
 
         for item in items:
+            if not item.ruptures:
+                # It is valid for the attribute to be None - this dimension has no ruptures
+                continue
+
             log.debug(f'SLR query item: {item} {item.location_radius}, ruptures: {len(item.ruptures)})')
 
             if union:
