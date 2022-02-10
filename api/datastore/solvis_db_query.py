@@ -19,12 +19,12 @@ db_metrics = ServerlessMetricWriter(lambda_name='nzshm22-solvis-api-test', metri
 db_metrics_hr = ServerlessMetricWriter(lambda_name='nzshm22-solvis-api-test', metric_name="MethodDuration", resolution=1)
 
 # QUERY operations for the API get endpoint(s)
-def get_rupture_ids(solution_id:str, locations:List[str], radius:int, union:bool =True) -> Set[int]:
+def get_rupture_ids(solution_id:str, locations:List[str], radius:int, union:bool =False) -> Set[int]:
 
     t0 = dt.utcnow()
 
-    fullset = set(range(10000))
-    ids = set() if union else fullset
+    all_possible_ids = set(range(10000))
+    ids = set() if union else all_possible_ids
 
     log.debug(f'get_rupture_ids({locations}, {radius}, union: {union})')
 
@@ -35,14 +35,15 @@ def get_rupture_ids(solution_id:str, locations:List[str], radius:int, union:bool
     for loc in locations:
         items = query_fn(solution_id, loc, radius)
         assert len(items) in [0,1]
-        loc_rupts = set()
-        for item in items:
-            if not item.ruptures:
-                continue
-            if item.radius > radius:
-                continue
 
-            log.info(f'SLR query item: {item} {item.location_radius}, ruptures: {len(item.ruptures)})')
+        log.debug(f'items: {items}, loc: {loc}')
+
+        if len(items) == 0 and not union:
+            ids = set()
+            continue
+
+        for item in items:
+            log.debug(f'SLR query item: {item} {item.location_radius}, ruptures: {len(item.ruptures)})')
 
             if union:
                 ids = ids.union(item.ruptures)
@@ -52,8 +53,8 @@ def get_rupture_ids(solution_id:str, locations:List[str], radius:int, union:bool
     t1 = dt.utcnow()
     db_metrics.put_duration(__name__, 'get_rupture_ids' , t1-t0)
 
-    #if no change to fullset (for intersection) return an empty set
-    return set() if ids is fullset else ids
+    #if no change to all_possible_ids (for intersection) return an empty set
+    return set() if ids is all_possible_ids else ids
 
 @lru_cache(maxsize=256)
 def get_ruptures_in(solution_id:str, rupture_ids: tuple) -> gpd.GeoDataFrame:
