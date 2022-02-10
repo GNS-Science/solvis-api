@@ -7,7 +7,7 @@ on:
 jobs:
   call-test-workflow:
     #https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
-    uses: GNS-Science/solvis-api/.github/workflows/run-tests.yaml@deploy-test
+    uses: ./.github/workflows/run-tests.yaml
 
   deploy:
     needs: call-test-workflow

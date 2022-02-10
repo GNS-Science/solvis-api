@@ -3,6 +3,9 @@
 a serverless web API for analysis of opensha modular Inversion Solutions
 
 
+The API openAPI/Swagger documentation is served by default from the service root.
+
+
 ## Getting started
 
 ```
@@ -23,10 +26,12 @@ sls wsgi serve
 ### Run full stack locally
 ```
 sls dynamodb start --stage dev &\
-sls offline-sns start &\
+SLS_OFFLINE=1 sls offline-sns start &\
 SLS_OFFLINE=1 sls wsgi serve
 ```
 
 ### Unit tests
 
-`SLS_OFFLINE=1 nosetests -v`
+`TESTING=1 nosetests -v --nologcapture`
+
+**TESTING** overrides **SLS_OFFLINE** to keep moto mockling happy

@@ -6,7 +6,7 @@ from flask_cors import CORS
 from api.namespaces import api#, blueprint
 
 from api.datastore import model
-from api.config import IS_OFFLINE
+from api.config import IS_OFFLINE, IS_TESTING
 
 #from api.datastore.datastore import get_datastore
 
@@ -28,8 +28,8 @@ def create_app():
     #set up the datastore config
     #datastore = get_datastore()
 
-    # if IS_OFFLINE:
-    #     model.set_local_mode()
+    if IS_OFFLINE and not IS_TESTING:
+        model.set_local_mode()
 
     app.before_first_request(model.migrate)
 

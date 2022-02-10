@@ -2,7 +2,7 @@
 
 import datetime
 import boto3
-from api.config import REGION, IS_OFFLINE
+from api.config import REGION, IS_OFFLINE, IS_TESTING
 
 # initialize our Cloudwatch client
 client = boto3.client('cloudwatch', region_name=REGION)
@@ -35,7 +35,7 @@ class ServerlessMetricWriter():
                 }
             ]
         )
-        if IS_OFFLINE:
+        if IS_OFFLINE or IS_TESTING:
             print("CW: ", rec)
         else:
             client.put_metric_data(**rec)
