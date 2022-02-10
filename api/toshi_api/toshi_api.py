@@ -16,7 +16,48 @@ class ToshiApi(ToshiClientBase):
         self._s3_url = s3_url
 
         self.inversion_solution = InversionSolution(self)
+        self.general_task = GeneralTask(self)
 
+class GeneralTask(object):
+    def __init__(self, api):
+        self.api = api
+        assert isinstance(api, ToshiClientBase)
+
+    def get_general_task_subtasks(self, id):
+        qry = '''
+            query one_general ($id:ID!)  {
+              node(id: $id) {
+                __typename
+                ... on GeneralTask {
+                  id
+                  title
+                  description
+                  created
+                  swept_arguments
+                  children {
+                    #total_count
+                    edges {
+                      node {
+                        child {
+                          __typename
+                          ... on AutomationTask {
+                            inversion_solution {
+                              id
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }'''
+
+        # print(qry)
+        input_variables = dict(id=id)
+        executed = self.api.run_query(qry, input_variables)
+        #print(executed)
+        return executed['node']
 
 class InversionSolution(object):
 

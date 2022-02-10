@@ -4,7 +4,7 @@ from pynamodb.models import Model
 
 from datetime import datetime as dt
 
-from api.config import REGION, DEPLOYMENT_STAGE
+from api.config import REGION, DEPLOYMENT_STAGE, IS_OFFLINE, IS_TESTING
 from api.cloudwatch import ServerlessMetricWriter
 
 import logging
@@ -89,9 +89,11 @@ table_classes = (
     SolutionFaultSection
 )
 
-# def set_local_mode(host="http://localhost:8000"):
-#     for table in table_classes:
-#         table.Meta.host = host
+def set_local_mode(host="http://localhost:8000"):
+    if IS_OFFLINE and not IS_TESTING:
+        log.info(f"Setting tables for local dynamodb instance in offline mode")
+        for table in table_classes:
+            table.Meta.host = host
 
 def drop_all(*args, **kwargs):
     """

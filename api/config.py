@@ -73,8 +73,8 @@ class EnvMode(enum.IntEnum):
     AWS = 0
     LOCAL = 1
 
-def boolean_env(environ_name):
-    return bool(os.getenv(environ_name, '').upper() in ["1", "Y", "YES", "TRUE"])
+def boolean_env(environ_name, default='False'):
+    return bool(os.getenv(environ_name, default).upper() in ["1", "Y", "YES", "TRUE"])
 
 #API Setting are needed to sore job details for later reference
 USE_API = boolean_env('NZSHM22_TOSHI_API_ENABLED')
@@ -93,6 +93,7 @@ WORK_PATH = os.getenv('NZSHM22_SCRIPT_WORK_PATH', "/tmp")
 SNS_TOPIC_ARN  = os.getenv('SNS_TOPIC_ARN')
 
 IS_OFFLINE = boolean_env('SLS_OFFLINE') #set by serverless-wsgi plugin
+IS_TESTING = boolean_env('TESTING', 'False')
 
 if IS_OFFLINE:
    SOLVIS_API_URL = 'http://localhost:5000'

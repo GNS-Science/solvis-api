@@ -15,8 +15,9 @@ from api.datastore.solvis_db import get_location_radius_rupture_models
 class PynamoTest(unittest.TestCase):
     
     def setUp(self):
-        #self.app = create_app()
+        self.app = create_app()
         #with self.app.app_context():
+        model.set_local_mode()
         model.SolutionLocationRadiusRuptureSet.create_table(wait=True)
         print("Migrate created table: SolutionLocationRadiusRuptureSet")
         super(PynamoTest, self).setUp()
