@@ -1,17 +1,28 @@
-name: Deploy on Push
+
+name: Deploy workflow (called from stage deploy workflow)
+
+#https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
 
 on:
-  push:
-    branches: [ deploy-test ]
+  workflow_call:
+    secrets:
+      NZSHM22_SOLVIS_API_KEY:
+        required: true
+      NZSHM22_SOLVIS_API_URL:
+        required: true
+      NZSHM22_TOSHI_API_ENABLED:
+        required: true
+      NZSHM22_TOSHI_API_KEY:
+        required: true
+      NZSHM22_TOSHI_API_URL:
+        required: true
+      SLS_OFFLINE:
+        required: true
+      STAGE:
+        required: true
 
 jobs:
-  call-test-workflow:
-    #https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
-    uses: ./.github/workflows/run-tests.yaml
-
   deploy:
-    needs: call-test-workflow
-    environment: AWS_TEST
     runs-on: ubuntu-latest
     
     strategy:
@@ -33,12 +44,12 @@ jobs:
           aws-region: ap-southeast-2
 
       - name: Serverless Deploy ....
-        run: npm run-script deploy-${{secrets.STAGE}}
+        run: npm run-script deploy
         env:
+          STAGE: ${{secrets.STAGE}}
           NZSHM22_SOLVIS_API_KEY: ${{ secrets.NZSHM22_SOLVIS_API_KEY }}
           NZSHM22_SOLVIS_API_URL: ${{ secrets.NZSHM22_SOLVIS_API_URL }}
           NZSHM22_TOSHI_API_ENABLED: ${{ secrets.NZSHM22_TOSHI_API_ENABLED }}
           NZSHM22_TOSHI_API_KEY: ${{ secrets.NZSHM22_TOSHI_API_KEY }}
           NZSHM22_TOSHI_API_URL: ${{ secrets.NZSHM22_TOSHI_API_URL }}
           SLS_OFFLINE: ${{ secrets.SLS_OFFLINE }}
-

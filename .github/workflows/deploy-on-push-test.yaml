@@ -1,0 +1,24 @@
+name: Deploy to TEST on Push to deploy-test
+
+on:
+  push:
+    branches: [ deploy-test ]
+
+jobs:
+  call-test-workflow:
+    #https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
+    uses: ./.github/workflows/run-tests.yaml
+
+  call-deploy-worflow:
+    needs: call-test-workflow
+    environment: AWS_TEST
+    uses: ./.github/workflows/deploy-workflow.yaml
+    secrets:
+      STAGE: ${{secrets.STAGE}}
+      NZSHM22_SOLVIS_API_KEY: ${{ secrets.NZSHM22_SOLVIS_API_KEY }}
+      NZSHM22_SOLVIS_API_URL: ${{ secrets.NZSHM22_SOLVIS_API_URL }}
+      NZSHM22_TOSHI_API_ENABLED: ${{ secrets.NZSHM22_TOSHI_API_ENABLED }}
+      NZSHM22_TOSHI_API_KEY: ${{ secrets.NZSHM22_TOSHI_API_KEY }}
+      NZSHM22_TOSHI_API_URL: ${{ secrets.NZSHM22_TOSHI_API_URL }}
+      SLS_OFFLINE: ${{ secrets.SLS_OFFLINE }}
+
