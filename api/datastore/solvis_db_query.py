@@ -19,7 +19,7 @@ db_metrics = ServerlessMetricWriter(lambda_name='nzshm22-solvis-api-test', metri
 db_metrics_hr = ServerlessMetricWriter(lambda_name='nzshm22-solvis-api-test', metric_name="MethodDuration", resolution=1)
 
 # QUERY operations for the API get endpoint(s)
-def get_rupture_ids(solution_id:str, locations:List[str], radius:int, union:bool =False) -> Set[int]:
+def get_rupture_ids(solution_id:str, locations:List[str], radius:int, union:bool = False) -> Set[int]:
 
     t0 = dt.utcnow()
 
@@ -32,27 +32,34 @@ def get_rupture_ids(solution_id:str, locations:List[str], radius:int, union:bool
     def query_fn(solution_id, loc, radius):
         return [i for i in mSLR.query(f'{solution_id}', mSLR.location_radius == (f"{loc}:{radius}"))]
 
-    for loc in locations:
-        items = query_fn(solution_id, loc, radius)
-        assert len(items) in [0,1]
+    def get_the_ids(locations, ids):
+        for loc in locations:
+            items = query_fn(solution_id, loc, radius)
 
-        log.debug(f'items: {items}, loc: {loc}')
+            assert len(items) in [0,1]
 
-        if len(items) == 0 and not union:
-            ids = set()
-            continue
+            if len(items) == 0 and not union:
+                return set()
 
-        for item in items:
-            if not item.ruptures:
-                # It is valid for the attribute to be None - this dimension has no ruptures
-                continue
+            for item in items:
+                if (not item.ruptures):
+                    if (not union):
+                        # It is valid for the attribute to be None - this dimension has no ruptures
+                        return set()
+                    else:
+                        continue
 
-            log.debug(f'SLR query item: {item} {item.location_radius}, ruptures: {len(item.ruptures)})')
+                log.debug(f'SLR query item: {item} {item.location_radius}, ruptures: {len(item.ruptures)})')
 
-            if union:
-                ids = ids.union(item.ruptures)
-            else:
-                ids = ids.intersection(item.ruptures)
+                if union:
+                    ids = ids.union(item.ruptures)
+                else:
+                    ids = ids.intersection(item.ruptures)
+
+        return ids
+
+
+    ids = get_the_ids(locations, ids)
 
     t1 = dt.utcnow()
     db_metrics.put_duration(__name__, 'get_rupture_ids' , t1-t0)
