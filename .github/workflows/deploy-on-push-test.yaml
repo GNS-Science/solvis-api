@@ -12,13 +12,14 @@ jobs:
   call-deploy-worflow:
     needs: call-test-workflow
     environment: AWS_TEST
-    uses: ./.github/workflows/deploy-workflow.yaml
-    secrets:
-      STAGE: ${{secrets.STAGE}}
-      NZSHM22_SOLVIS_API_KEY: ${{ secrets.NZSHM22_SOLVIS_API_KEY }}
-      NZSHM22_SOLVIS_API_URL: ${{ secrets.NZSHM22_SOLVIS_API_URL }}
-      NZSHM22_TOSHI_API_ENABLED: ${{ secrets.NZSHM22_TOSHI_API_ENABLED }}
-      NZSHM22_TOSHI_API_KEY: ${{ secrets.NZSHM22_TOSHI_API_KEY }}
-      NZSHM22_TOSHI_API_URL: ${{ secrets.NZSHM22_TOSHI_API_URL }}
-      SLS_OFFLINE: ${{ secrets.SLS_OFFLINE }}
+    steps:
+      uses: ./.github/workflows/deploy-workflow.yaml
+      secrets:
+        STAGE: ${{secrets.STAGE}}
+        NZSHM22_SOLVIS_API_KEY: ${{ secrets.NZSHM22_SOLVIS_API_KEY }}
+        NZSHM22_SOLVIS_API_URL: ${{ secrets.NZSHM22_SOLVIS_API_URL }}
+        NZSHM22_TOSHI_API_ENABLED: ${{ secrets.NZSHM22_TOSHI_API_ENABLED }}
+        NZSHM22_TOSHI_API_KEY: ${{ secrets.NZSHM22_TOSHI_API_KEY }}
+        NZSHM22_TOSHI_API_URL: ${{ secrets.NZSHM22_TOSHI_API_URL }}
+        SLS_OFFLINE: ${{ secrets.SLS_OFFLINE }}
 
