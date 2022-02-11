@@ -1,108 +1,139 @@
 #!python
 
-from flask_restplus import Namespace, Resource, fields
+import json
+import io
+import boto3
+import logging
+
+from functools import lru_cache
+from uuid import uuid4
+
+from flask_restx import reqparse
+from flask_restx import Namespace, Resource, fields
+from pandas.io import pickle
 from api.toshi_api.toshi_api import ToshiApi
 
-# Set up your local config, from environment variables, with some sone defaults
-from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL)
+from api.config import (API_KEY, API_URL, S3_URL, SNS_TOPIC_ARN, IS_OFFLINE)
 from api.solvis import multi_city_events
-# from api.namespaces.locations import Location
 
 import pandas as pd
-from solvis import InversionSolution
+import geopandas as gpd
+from solvis import InversionSolution, new_sol, section_participation
+# from api.model import SolutionLocationsRadiiDF
 
-api = Namespace('solutions', description='Solution analysis related operations')
+#from api.namespaces.solution_analysis_geojson import get_solution_dataframe_result
+from api.namespaces.solution_analysis_geojson import api
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
+
+from api.datastore.datastore import get_ds
 
 headers={"x-api-key":API_KEY}
 toshi_api = ToshiApi(API_URL, S3_URL, None, with_schema_validation=False, headers=headers)
 
+
+def publish_message(message):
+    if IS_OFFLINE:
+        AWS_REGION = 'ap-southeast-2'
+        client = boto3.client('sns', endpoint_url="http://127.0.0.1:4002", region_name=AWS_REGION)
+    else:
+        client = boto3.client('sns')
+
+    log.debug(f"SNS_TOPIC_ARN {SNS_TOPIC_ARN}")
+    response = client.publish (
+        TargetArn = SNS_TOPIC_ARN,
+        Message = json.dumps({'default': json.dumps(message)}),
+        MessageStructure = 'json'
+    )
+
+    log.debug(f"SNS reponse {response}")
+
+
+#need to keep this in sync with pynamodb model.SolutionLocationsRadiiDF. Must be a better way
 solution_analysis_model = api.model('Solution Analysis', dict(
+    id = fields.String(description='The unique identifier for this analysis request'),
     solution_id = fields.String(required=True, description='The solution identifier (ref Toshi API '),
+    locations_list_id = fields.String(required=True, description='The locations_list ID (see /location_lists)'),
+    radii_list_id = fields.String(required=True, description='The radii_list ID (see /radii_lists)'),
+    #created = fields.DateTime(description='The created timestamp'),
+    #dataframe = fields.String(description='The dataframe in json, only availble with filter or single get')
+))
+
+@api.route('/inversion_solution')
+class SolutionAnalysisList(Resource):
+    # @api.doc('list_solution')
+    # @api.marshal_list_with(solution_analysis_model)
+    # def get(self):
+    #     '''List all solution'''
+    #     datastore = get_ds()
+    #     solutions = datastore.resources.solutions
+    #     return [x for x in solutions.scan(
+    #         attributes_to_get=["id", "solution_id", "locations_list_id", "radii_list_id", "created"]
+    #         )]
+
+
+    # @api.doc('create_solution_analysis ')
+    @api.expect(solution_analysis_model)
+    @api.marshal_with(solution_analysis_model)
+    @api.response(404, 'solution id not found')
+    def post(self):
+        '''Create a solution_analysis SNS message, returning the id of the analysis'''
+
+        log.debug(f"payload {api.payload}")
+
+        solution_id = api.payload['solution_id']
+        locations_list_id = api.payload['locations_list_id']
+        radii_list_id = api.payload['radii_list_id']
+
+        _id = str(uuid4())
+
+        #TODO error handling here...
+        solution = toshi_api.inversion_solution.get_file_download_url(solution_id)
+
+        msg = {'id': _id, 'solution_id': solution_id, 'locations_list_id': locations_list_id, 'radii_list_id': radii_list_id}
+
+        publish_message(msg)
+
+        api.payload['id'] = _id
+        return api.payload
+
+
+general_task_model = api.model('Toshi API General Task Input ', dict(
+    id = fields.String(description='The unique identifier for this analysis request'),
+    general_task_id = fields.String(required=True, description='The General Task identifier (ref Toshi API '),
     locations_list_id = fields.String(required=True, description='The locations_list ID (see /location_lists)'),
     radii_list_id = fields.String(required=True, description='The radii_list ID (see /radii_lists)'),
 ))
 
-SOLUTION_ANALYSES = [
-    dict(solution_id='SW52ZXJzaW9uU29sdXRpb246MTc1NTQuMDdzQ3d1', locations_list_id="NZ", radii_list_id="1"),
-]
+@api.route('/general_task')
+class GeneralTaskAnalysisRequest(Resource):
+    """
+    Initiate Analysis processing for all Solutions in the given General Task
+    """
+    @api.expect(general_task_model)
+    @api.marshal_with(general_task_model)
+    @api.response(404, 'general_task id not found')
+    def post(self):
 
-@api.route('/')
-class SolutionAnalysisList(Resource):
-    @api.doc('list_solution')
-    @api.marshal_list_with(solution_analysis_model)
-    def get(self):
-        '''List all solution'''
-        return SOLUTION_ANALYSES
+        log.debug(f"GeneralTaskAnalysisRequest post payload {api.payload}")
 
-@api.route('/<solution_id>/<locations_list_id>/<radii_list_id>')
-@api.param('solution_id', 'The solution analysis identifier')
-@api.response(404, 'solution analysis not found')
-class SolutionAnalysis(Resource):
-    @api.doc('get_solution_analysis ')
-    @api.marshal_with(solution_analysis_model)
-    def get(self, solution_id, locations_list_id, radii_list_id):
-        '''Fetch a solution_analysis_model given its identifiers'''
-        for loc in SOLUTION_ANALYSES:
-            if loc['solution_id'] == solution_id and \
-                 loc['locations_list_id'] == locations_list_id and \
-                 loc['radii_list_id'] == radii_list_id:
-                return loc
-        api.abort(404)
+        _id = str(uuid4())
+        general_task_id = api.payload['general_task_id']
+        locations_list_id = api.payload['locations_list_id']
+        radii_list_id = api.payload['radii_list_id']
 
-    @api.doc('create_solution_analysis ')
-    @api.expect(solution_analysis_model)
-    @api.marshal_with(solution_analysis_model)
-    @api.response(404, 'solution id not found')
-    def post(self, solution_id, locations_list_id, radii_list_id):
+        gt = toshi_api.general_task.get_general_task_subtasks(general_task_id)
 
-        WORK_PATH = "./tmp"
-        #fetch the solution
-        filename = toshi_api.inversion_solution.download_inversion_solution(solution_id, WORK_PATH)
-        solution = InversionSolution().from_archive(filename)
+        if not gt:
+            api.abort(404, f'The requested General Task ({general_task_id}) was not found.')
 
-        #ref https://service.unece.org/trade/locode/nz.htm
-        cities = dict(
-            WLG = ["Wellington", -41.276825, 174.777969, 2e5],
-            GIS = ["Gisborne", -38.662334, 178.017654, 5e4],
-            CHC = ["Christchurch", -43.525650, 172.639847, 3e5],
-            IVC = ["Invercargill", -46.413056, 168.3475, 8e4],
-            DUD = ["Dunedin", -45.8740984, 170.5035755, 1e5],
-            NPE = ["Napier", -39.4902099, 176.917839, 8e4],
-            NPL = ["New Plymouth", -39.0579941, 174.0806474, 8e4],
-            PMR = ["Palmerston North", -40.356317, 175.6112388, 7e4],
-            NSN = ["Nelson", -41.2710849, 173.2836756, 8e4],
-            BHE = ["Blenheim", -41.5118691, 173.9545856, 5e4],
-            WHK = ["Whakatane", -37.9519223, 176.9945977, 5e4],
-            GMN = ["Greymouth", -42.4499469, 171.2079875, 3e4],
-            ZQN = ["Queenstown", -45.03, 168.66, 15e3],
-            AKL = ["Auckland", -36.848461, 174.763336, 2e6],
-            ROT = ["Rotorua", -38.1446, 176.2378, 77e3],
-            TUO = ["Taupo", -38.6843, 176.0704, 26e3],
-            WRE = ["Whangarei", -35.7275, 174.3166, 55e3],
-            LVN = ["Levin", -40.6218, 175.2866, 19e3],
-            TMZ = ["Tauranga", -37.6870, 176.1654, 130e3],
-            TIU = ['Timaru', -44.3904, 171.2373, 28e3],
-            OAM = ["Oamaru", -45.0966, 170.9714, 14e3],
-            PUK = ["Pukekohe", -37.2004, 174.9010, 27e3],
-            HLZ = ["Hamilton", -37.7826, 175.2528, 165e3],
-            LYJ = ["Lower Hutt", -41.2127, 174.8997, 112e3]
-        )
+        for node in gt['children']['edges']:
+            at = node['node']['child']
+            solution = at.get('inversion_solution')
+            if solution:
+                msg = {'id': _id, 'solution_id': solution['id'], 'locations_list_id': locations_list_id, 'radii_list_id': radii_list_id}
+            publish_message(msg)
 
-        combos = multi_city_events.city_combinations(cities, 0, 5)
-        print(f"city combos: {len(combos)}")
-
-        radii = [10e3,20e3,30e3,40e3,50e3,100e3] #AK could be larger ??
-
-        rupture_radius_site_sets = multi_city_events.main(solution, cities, combos, radii)
-
-        #now export for some science analysis
-        df = pd.DataFrame.from_dict(rupture_radius_site_sets, orient='index')
-        df = df.rename(columns=dict(zip(radii, [f'r{int(r/1000)}km' for r in radii])))
-
-        print(df)
-        ruptures = df.join(solution.ruptures_with_rates)
-        print(ruptures)
-
-
-        ##Save the dataframe
-
+        api.payload['id'] = _id
+        return api.payload
