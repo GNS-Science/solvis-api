@@ -115,7 +115,7 @@ functions:
     description: The REST API of ${self:service}
     handler: wsgi_handler.handler
     memorySize: 5120 # optional, in MB, default is 1024
-    #timeout: 5 # optional, in seconds, default is 6
+    #timeout: 30 # optional, in seconds, default is 6
     environment:
       STACK_NAME: ${self:custom.stack_name}
       SNS_TOPIC_ARN: ${self:custom.topic_arn}
