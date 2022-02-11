@@ -76,7 +76,18 @@ class EmptyLocationEdgecaseTest(unittest.TestCase):
 
     #https://fcx7tkv322.execute-api.ap-southeast-2.amazonaws.com/test/solution_analysis/SW52ZXJzaW9uU29sdXRpb246Mjc0OS4wMlhVTlA=/loc/ROT/rad/10?max_mag=10&min_mag=5&max_rate=1e0&min_rate=1e-20
     def test_get_model_with_empty_ruptures_attribute(self):
-        ids = get_rupture_ids(solution_id='test_solution_id', locations=['ROT'], radius=10000, union=True)
+        ids = get_rupture_ids(solution_id='test_solution_id', locations=['ROT'], radius=10000)
         print(ids)
         self.assertEqual(ids, set([]))
 
+    def test_get_model_with_empty_and_nonempty_ruptures_attribute_and(self):
+        ids = get_rupture_ids(solution_id='test_solution_id', locations=['ROT','WLG'], radius=10000, union=False)
+        print(ids)
+        self.assertEqual(ids, set([]))
+
+    def test_get_model_with_empty_and_nonempty_ruptures_attribute_or(self):
+        ids = get_rupture_ids(solution_id='test_solution_id', locations=['ROT','WLG'], radius=10000, union=True)
+        print(ids)
+        #assert(0)
+        self.assertEqual(len(ids), 3)
+        self.assertEqual(ids, set([1,2,3])) #WLG IDS
