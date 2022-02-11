@@ -9,17 +9,17 @@ jobs:
     #https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
     uses: ./.github/workflows/run-tests.yaml
 
-  call-deploy-worflow:
+  call-deploy-workflow:
     needs: call-test-workflow
     environment: AWS_TEST
     steps:
-      uses: ./.github/workflows/deploy-workflow.yaml
-      secrets:
-        STAGE: ${{secrets.STAGE}}
-        NZSHM22_SOLVIS_API_KEY: ${{ secrets.NZSHM22_SOLVIS_API_KEY }}
-        NZSHM22_SOLVIS_API_URL: ${{ secrets.NZSHM22_SOLVIS_API_URL }}
-        NZSHM22_TOSHI_API_ENABLED: ${{ secrets.NZSHM22_TOSHI_API_ENABLED }}
-        NZSHM22_TOSHI_API_KEY: ${{ secrets.NZSHM22_TOSHI_API_KEY }}
-        NZSHM22_TOSHI_API_URL: ${{ secrets.NZSHM22_TOSHI_API_URL }}
-        SLS_OFFLINE: ${{ secrets.SLS_OFFLINE }}
+      - uses: ./.github/workflows/deploy-workflow.yaml
+        secrets:
+          STAGE: ${{secrets.STAGE}}
+          NZSHM22_SOLVIS_API_KEY: ${{ secrets.NZSHM22_SOLVIS_API_KEY }}
+          NZSHM22_SOLVIS_API_URL: ${{ secrets.NZSHM22_SOLVIS_API_URL }}
+          NZSHM22_TOSHI_API_ENABLED: ${{ secrets.NZSHM22_TOSHI_API_ENABLED }}
+          NZSHM22_TOSHI_API_KEY: ${{ secrets.NZSHM22_TOSHI_API_KEY }}
+          NZSHM22_TOSHI_API_URL: ${{ secrets.NZSHM22_TOSHI_API_URL }}
+          SLS_OFFLINE: ${{ secrets.SLS_OFFLINE }}
 
