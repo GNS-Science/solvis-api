@@ -102,6 +102,8 @@ provider:
          - "dynamodb:CreateTable"
          - "dynamodb:GetItem"
          - "dynamodb:PutItem"
+         - "dynamodb:Query"
+         - "dynamodb:BatchWriteItem"
          - "SNS:Publish"
          - "cloudwatch:PutMetricData"
        Resource: "*"
