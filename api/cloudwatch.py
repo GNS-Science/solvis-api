@@ -20,7 +20,7 @@ class ServerlessMetricWriter():
     def put_duration(self, package, operation, duration):
 
         if isinstance(duration, datetime.timedelta):
-            duration = float(duration.seconds/1e6 + (duration.microseconds/1e3))
+            duration = float(duration.seconds*1e3 + (duration.microseconds/1e3))
 
         rec = dict(
             Namespace=f'AWS/Lambda/{self._lambda_name}',
