@@ -131,7 +131,7 @@ functions:
       NZSHM22_TOSHI_API_URL: ${env:NZSHM22_TOSHI_API_URL}
       NZSHM22_TOSHI_API_ENABLED: ${env:NZSHM22_TOSHI_API_ENABLED}
       NZSHM22_TOSHI_API_KEY: ${env:NZSHM22_TOSHI_API_KEY}
-      CLOUDWATCH_APP_NAME: ${cw_app_name_api}
+      CLOUDWATCH_APP_NAME: ${self:custom.cw_app_name_api}
       LOGGING_CFG: "./api/logging.yaml"
 
     events:
@@ -168,4 +168,5 @@ functions:
       SLS_OFFLINE: ${env:SLS_OFFLINE}
       DEPLOYMENT_STAGE: ${self:custom.stage}
       PYNAMODB_CONFIG: "./api/pynamodb_config.py"
-      CLOUDWATCH_APP_NAME: ${cw_app_name_analysis}
+      CLOUDWATCH_APP_NAME: ${self:custom.cw_app_name_analysis}
+
