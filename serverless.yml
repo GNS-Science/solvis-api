@@ -46,8 +46,8 @@ custom:
   topic_arn: arn:aws:sns:${self:custom.region}:${aws:accountId}:${self:custom.topic_name}
   solvis_api_url: TODO-${self:custom.stage}
   http_api_path: /${self.custom.stage}
-  cw_app_name_api: ${self:custom.stack_name}-APP-app
-  cw_app_name_analysis: ${self:custom.stack_name}-ANALYSIS-app
+  cw_app_name_api: ${self:custom.stack_name}-API
+  cw_app_name_analysis: ${self:custom.stack_name}-ANALYSIS
 
   #serverless-wsgi settings
   wsgi:
