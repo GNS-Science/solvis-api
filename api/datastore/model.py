@@ -4,7 +4,7 @@ from pynamodb.models import Model
 
 from datetime import datetime as dt
 
-from api.config import REGION, DEPLOYMENT_STAGE, IS_OFFLINE, IS_TESTING
+from api.config import REGION, DEPLOYMENT_STAGE, IS_OFFLINE, IS_TESTING, CLOUDWATCH_APP_NAME
 from api.cloudwatch import ServerlessMetricWriter
 
 import logging
@@ -12,15 +12,13 @@ import logging
 log = logging.getLogger("pynamodb")
 # log.setLevel(logging.DEBUG)
 
-db_metrics = ServerlessMetricWriter(lambda_name='nzshm22-solvis-api-test', metric_name="MethodDuration", resolution=1)
-
+db_metrics = ServerlessMetricWriter(lambda_name=CLOUDWATCH_APP_NAME, metric_name="MethodDuration", resolution=1)
 
 class MetricatedModel(Model):
 
     @classmethod
     def query(cls, *args, **kwargs):
         t0 = dt.utcnow()
-        print(cls, cls.__class__)
         res = super(MetricatedModel, cls).query(*args, **kwargs)
         t1 = dt.utcnow()
         db_metrics.put_duration(__name__, f'{cls.__name__}.query' , t1-t0)

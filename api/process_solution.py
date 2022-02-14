@@ -27,7 +27,6 @@ if IS_OFFLINE:
 model.migrate()
 
 def process_event(evt):
-    # print(evt)
     message = json.loads(evt['Sns']['Message'])
 
     _id = message['id']
