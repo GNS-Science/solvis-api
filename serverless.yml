@@ -116,7 +116,7 @@ functions:
   app:
     description: The REST API of ${self:service}
     handler: wsgi_handler.handler
-    memorySize: 5120 # optional, in MB, default is 1024
+    memorySize: 8192 # optional, in MB, default is 1024
     #timeout: 30 # optional, in seconds, default is 6
     environment:
       STACK_NAME: ${self:custom.stack_name}
@@ -128,6 +128,8 @@ functions:
       NZSHM22_TOSHI_API_URL: ${env:NZSHM22_TOSHI_API_URL}
       NZSHM22_TOSHI_API_ENABLED: ${env:NZSHM22_TOSHI_API_ENABLED}
       NZSHM22_TOSHI_API_KEY: ${env:NZSHM22_TOSHI_API_KEY}
+      CLOUDWATCH_APP_NAME: ${stack_name}-API-app
+      LOGGING_CFG: "./api/logging.yaml"
 
     events:
       - http:
@@ -163,4 +165,5 @@ functions:
       SLS_OFFLINE: ${env:SLS_OFFLINE}
       DEPLOYMENT_STAGE: ${self:custom.stage}
       PYNAMODB_CONFIG: "./api/pynamodb_config.py"
+      CLOUDWATCH_APP_NAME: ${stack_name}-analysis-app
 
