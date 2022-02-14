@@ -1,14 +1,18 @@
 import logging
 from flask import Flask, g, request
-from flask.logging import default_handler
+#from flask.logging import default_handler
 
 from flask_cors import CORS
 from api.namespaces import api#, blueprint
 
 from api.datastore import model
-from api.config import IS_OFFLINE, IS_TESTING
+from api.config import IS_OFFLINE, IS_TESTING, LOGGING_CFG
 
 #from api.datastore.datastore import get_datastore
+import logging.config
+import os
+import yaml
+
 
 def create_app():
     """
@@ -24,7 +28,6 @@ def create_app():
     api.init_app(app)
     CORS(app)
 
-
     #set up the datastore config
     #datastore = get_datastore()
 
@@ -33,25 +36,26 @@ def create_app():
 
     app.before_first_request(model.migrate)
 
-    @app.before_request
-    def hook():
-        log.info('before_request endpoint: %s, url: %s, path: %s' % (
-            request.endpoint,
-            request.url,
-            request.path))
+    # @app.before_request
+    # def hook():
+    #     log.debug('before_request endpoint: %s, url: %s, path: %s' % (
+    #         request.endpoint,
+    #         request.url,
+    #         request.path))
 
     return app
 
 app = create_app()
 
-for logger in (
-    app.logger,
-    #logging.getLogger('pynamodb'),
-    #logging.getLogger('other_package'),
-):
-    #logger.setLevel(logging.INFO)
+"""
+Setup logging configuration
+ref https://fangpenlin.com/posts/2012/08/26/good-logging-practice-in-python/
+
+"""
+
+if os.path.exists(LOGGING_CFG):
+    with open(LOGGING_CFG, 'rt') as f:
+        config = yaml.safe_load(f.read())
+    logging.config.dictConfig(config)
+else:
     logging.basicConfig(level=logging.INFO)
-
-
-#if __name__ == "__main__":
-#    app.run(debug=True)

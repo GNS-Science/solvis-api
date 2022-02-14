@@ -22,13 +22,11 @@ import solvis
 
 def get_secret(secret_name, region_name):
 
-    print(secret_name, region_name)
     # Create a Secrets Manager client
     session = boto3.session.Session()
     client = session.client(
         service_name='secretsmanager',
         region_name=region_name,
-
     )
 
     # In this sample we only handle the specific exceptions for the 'GetSecretValue' API.
@@ -104,3 +102,6 @@ SOLVIS_API_KEY = os.getenv('NZSHM22_SOLVIS_API_KEY', '')
 
 REGION = os.getenv('REGION', 'us-east-1')
 DEPLOYMENT_STAGE = os.getenv('DEPLOYMENT_STAGE', 'LOCAL').upper()
+LOGGING_CFG = os.getenv('LOGGING_CFG', 'api/logging.yaml')
+
+CLOUDWATCH_APP_NAME = os.getenv('CLOUDWATCH_APP_NAME', 'CLOUDWATCH_APP_NAME_unconfigured')
