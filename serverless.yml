@@ -120,6 +120,7 @@ functions:
     handler: wsgi_handler.handler
     memorySize: 8192 # optional, in MB, default is 1024
     timeout: 30 # optional, in seconds, default is 6
+
     environment:
       STACK_NAME: ${self:custom.stack_name}
       SNS_TOPIC_ARN: ${self:custom.topic_arn}
@@ -168,4 +169,3 @@ functions:
       DEPLOYMENT_STAGE: ${self:custom.stage}
       PYNAMODB_CONFIG: "./api/pynamodb_config.py"
       CLOUDWATCH_APP_NAME: ${cw_app_name_analysis}
-
