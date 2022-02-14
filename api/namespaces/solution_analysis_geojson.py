@@ -14,7 +14,7 @@ from flask_restx import Namespace, Resource, fields
 from api.toshi_api.toshi_api import ToshiApi
 
 # Set up your local config, from environment variables, with some sone defaults
-from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL, SNS_TOPIC_ARN, IS_OFFLINE)
+from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL, SNS_TOPIC_ARN, IS_OFFLINE, CLOUDWATCH_APP_NAME)
 from api.solvis import multi_city_events
 
 from solvis import InversionSolution, new_sol, section_participation, circle_polygon
@@ -25,10 +25,9 @@ import logging
 
 from api.cloudwatch import ServerlessMetricWriter
 
-db_metrics = ServerlessMetricWriter(lambda_name='nzshm22-solvis-api-test', metric_name="MethodDuration")
+db_metrics = ServerlessMetricWriter(lambda_name=CLOUDWATCH_APP_NAME, metric_name="MethodDuration")
 
 log = logging.getLogger(__name__)
-#log.setLevel(logging.DEBUG)
 
 api = Namespace('solution_analysis', description='Solution analysis related operations')
 
@@ -38,7 +37,7 @@ toshi_api = ToshiApi(API_URL, S3_URL, None, with_schema_validation=False, header
 def locations_geojson(locations, radius_km):
     features = []
     for loc in locations:
-        print('LOC', loc)
+        log.debug(f'LOC {loc}')
         item = location_by_id(loc)
         polygon = circle_polygon(radius_km*1000, lat=item.get('latitude'), lon=item.get('longitude'))
         feature = dict(id=loc, type="Feature", geometry=shapely.geometry.mapping(polygon),

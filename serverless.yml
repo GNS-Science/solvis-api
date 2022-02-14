@@ -46,6 +46,8 @@ custom:
   topic_arn: arn:aws:sns:${self:custom.region}:${aws:accountId}:${self:custom.topic_name}
   solvis_api_url: TODO-${self:custom.stage}
   http_api_path: /${self.custom.stage}
+  cw_app_name_api: ${self:custom.stack_name}-API
+  cw_app_name_analysis: ${self:custom.stack_name}-ANALYSIS
 
   #serverless-wsgi settings
   wsgi:
@@ -116,8 +118,9 @@ functions:
   app:
     description: The REST API of ${self:service}
     handler: wsgi_handler.handler
-    memorySize: 5120 # optional, in MB, default is 1024
-    #timeout: 30 # optional, in seconds, default is 6
+    memorySize: 8192 # optional, in MB, default is 1024
+    timeout: 30 # optional, in seconds, default is 6
+
     environment:
       STACK_NAME: ${self:custom.stack_name}
       SNS_TOPIC_ARN: ${self:custom.topic_arn}
@@ -128,6 +131,8 @@ functions:
       NZSHM22_TOSHI_API_URL: ${env:NZSHM22_TOSHI_API_URL}
       NZSHM22_TOSHI_API_ENABLED: ${env:NZSHM22_TOSHI_API_ENABLED}
       NZSHM22_TOSHI_API_KEY: ${env:NZSHM22_TOSHI_API_KEY}
+      CLOUDWATCH_APP_NAME: ${self:custom.cw_app_name_api}
+      LOGGING_CFG: "./api/logging.yaml"
 
     events:
       - http:
@@ -163,4 +168,5 @@ functions:
       SLS_OFFLINE: ${env:SLS_OFFLINE}
       DEPLOYMENT_STAGE: ${self:custom.stage}
       PYNAMODB_CONFIG: "./api/pynamodb_config.py"
+      CLOUDWATCH_APP_NAME: ${self:custom.cw_app_name_analysis}
 
