@@ -2,18 +2,20 @@
 
 import json
 import io
-import boto3
+
 import logging
 
 from functools import lru_cache
 from uuid import uuid4
+
+from functools import lru_cache
 
 from flask_restx import reqparse
 from flask_restx import Namespace, Resource, fields
 from pandas.io import pickle
 from api.toshi_api.toshi_api import ToshiApi
 
-from api.config import (API_KEY, API_URL, S3_URL, SNS_TOPIC_ARN, IS_OFFLINE)
+from api.config import (API_KEY, API_URL, S3_URL, SNS_TOPIC, IS_OFFLINE, IS_TESTING)
 from api.solvis import multi_city_events
 
 import pandas as pd
@@ -25,29 +27,15 @@ from solvis import InversionSolution, new_sol, section_participation
 from api.namespaces.solution_analysis_geojson import api
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+#log.setLevel(logging.DEBUG)
 
 from api.datastore.datastore import get_ds
+
+from api.aws_util import publish_message
 
 headers={"x-api-key":API_KEY}
 toshi_api = ToshiApi(API_URL, S3_URL, None, with_schema_validation=False, headers=headers)
 
-
-def publish_message(message):
-    if IS_OFFLINE:
-        AWS_REGION = 'ap-southeast-2'
-        client = boto3.client('sns', endpoint_url="http://127.0.0.1:4002", region_name=AWS_REGION)
-    else:
-        client = boto3.client('sns')
-
-    log.debug(f"SNS_TOPIC_ARN {SNS_TOPIC_ARN}")
-    response = client.publish (
-        TargetArn = SNS_TOPIC_ARN,
-        Message = json.dumps({'default': json.dumps(message)}),
-        MessageStructure = 'json'
-    )
-
-    log.debug(f"SNS reponse {response}")
 
 
 #need to keep this in sync with pynamodb model.SolutionLocationsRadiiDF. Must be a better way
@@ -104,7 +92,9 @@ general_task_model = api.model('Toshi API General Task Input ', dict(
     general_task_id = fields.String(required=True, description='The General Task identifier (ref Toshi API '),
     locations_list_id = fields.String(required=True, description='The locations_list ID (see /location_lists)'),
     radii_list_id = fields.String(required=True, description='The radii_list ID (see /radii_lists)'),
-))
+    only_location_ids = fields.String(required=False, description='optional location identifiers, comma-delmited list e.g. `WLG,PMR,ZQN`'),
+    only_radii_kms = fields.String(required=True, description='optional list of radius in km. e.g. `10,20`'))
+)
 
 @api.route('/general_task')
 class GeneralTaskAnalysisRequest(Resource):
@@ -120,20 +110,23 @@ class GeneralTaskAnalysisRequest(Resource):
 
         _id = str(uuid4())
         general_task_id = api.payload['general_task_id']
-        locations_list_id = api.payload['locations_list_id']
-        radii_list_id = api.payload['radii_list_id']
 
-        gt = toshi_api.general_task.get_general_task_subtasks(general_task_id)
+        print(f"general_task_id: {general_task_id}")
+
+        # locations_list_id = api.payload['locations_list_id']
+        # radii_list_id = api.payload['radii_list_id']
+        # only_location_ids = api.payload.get('only_location_ids')
+        # only_radii_kms = api.payload.get('only_radii_kms')
+
+        gt = toshi_api.general_task.get_general_task(general_task_id)
+
+        print(f"general_task_id: {gt}")
+
+        api.payload['id'] = _id
 
         if not gt:
             api.abort(404, f'The requested General Task ({general_task_id}) was not found.')
+        else:
+            publish_message(api.payload)
 
-        for node in gt['children']['edges']:
-            at = node['node']['child']
-            solution = at.get('inversion_solution')
-            if solution:
-                msg = {'id': _id, 'solution_id': solution['id'], 'locations_list_id': locations_list_id, 'radii_list_id': radii_list_id}
-            publish_message(msg)
-
-        api.payload['id'] = _id
         return api.payload

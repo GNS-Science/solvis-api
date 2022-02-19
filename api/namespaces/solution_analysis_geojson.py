@@ -14,7 +14,7 @@ from flask_restx import Namespace, Resource, fields
 from api.toshi_api.toshi_api import ToshiApi
 
 # Set up your local config, from environment variables, with some sone defaults
-from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL, SNS_TOPIC_ARN, IS_OFFLINE, CLOUDWATCH_APP_NAME)
+from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL, IS_OFFLINE, CLOUDWATCH_APP_NAME)
 from api.solvis import multi_city_events
 
 from solvis import InversionSolution, new_sol, section_participation, circle_polygon
