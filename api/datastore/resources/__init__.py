@@ -31,7 +31,7 @@ LOCATIONS = [
 {'id': 'PUK', 'name': 'Pukekohe', 'latitude': -37.2004, 'longitude': 174.901, 'population': 27000.0},
 {'id': 'HLZ', 'name': 'Hamilton', 'latitude': -37.7826, 'longitude': 175.2528, 'population': 165000.0},
 {'id': 'LYJ', 'name': 'Lower Hutt', 'latitude': -41.2127, 'longitude': 174.8997, 'population': 112000.0},
-{'id': 'KBZ', 'name': 'Kaikoura', 'latitude': 42.4, 'longitude': 173.68, 'population': 2400 }]
+{'id': 'KBZ', 'name': 'Kaikoura', 'latitude': -42.4, 'longitude': 173.68, 'population': 2400 }]
 
 
 def location_by_id(location_code):
