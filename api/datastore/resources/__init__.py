@@ -1,11 +1,11 @@
 LOCATION_LISTS = [
 	{'id':'NZ', 'name': "Default NZ locations", 'locations': ['WLG', 'GIS', 'CHC', 'IVC', 'DUD', 'NPE', 'NPL', 'PMR', 'NSN',
                                                               'BHE', 'WHK', 'GMN', 'ZQN', 'AKL', 'ROT',
-                                                              'TUO', 'WRE', 'LVN', 'TMZ', 'TIU', 'OAM', 'PUK', 'HLZ', 'LYJ',]},
-	{'id':'NZ2', 'name': "Main Cities NZ", 'locations': ['WLG', 'CHC', 'DUD', 'NPL', 'AKL', 'ROT', 'HLZ',]},
-]
+                                                              'TUO', 'WRE', 'LVN', 'TMZ', 'TIU', 'OAM', 'PUK', 'HLZ', 'LYJ', 'KBZ']},
+	{'id':'NZ2', 'name': "Main Cities NZ", 'locations': ['WLG', 'CHC', 'DUD', 'NPL', 'AKL', 'ROT', 'HLZ']}]
 
-#Omitting country for now, focus on NZ
+# Omitting country for now, focus on NZ
+# https://service.unece.org/trade/locode/nz.htm
 LOCATIONS = [
 {'id': 'WLG', 'name': 'Wellington', 'latitude': -41.276825, 'longitude': 174.777969, 'population': 200000.0},
 {'id': 'GIS', 'name': 'Gisborne', 'latitude': -38.662334, 'longitude': 178.017654, 'population': 50000.0},
@@ -30,7 +30,8 @@ LOCATIONS = [
 {'id': 'OAM', 'name': 'Oamaru', 'latitude': -45.0966, 'longitude': 170.9714, 'population': 14000.0},
 {'id': 'PUK', 'name': 'Pukekohe', 'latitude': -37.2004, 'longitude': 174.901, 'population': 27000.0},
 {'id': 'HLZ', 'name': 'Hamilton', 'latitude': -37.7826, 'longitude': 175.2528, 'population': 165000.0},
-{'id': 'LYJ', 'name': 'Lower Hutt', 'latitude': -41.2127, 'longitude': 174.8997, 'population': 112000.0}]
+{'id': 'LYJ', 'name': 'Lower Hutt', 'latitude': -41.2127, 'longitude': 174.8997, 'population': 112000.0},
+{'id': 'KBZ', 'name': 'Kaikoura', 'latitude': 42.4, 'longitude': 173.68, 'population': 2400 }]
 
 
 def location_by_id(location_code):

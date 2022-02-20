@@ -7,7 +7,7 @@ from api.api import create_app
 from api.datastore.datastore import get_datastore
 
 # Set up your local config, from environment variables, with some sone defaults
-from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL, SNS_TOPIC_ARN, IS_OFFLINE)
+from api.config import (WORK_PATH, USE_API, API_KEY, API_URL, S3_URL, IS_OFFLINE)
 
 class TestResources:
     LOCATION_LISTS = [
@@ -30,6 +30,7 @@ class BaseTestCase(unittest.TestCase):
         app.config["TESTING"] = True
         self.client =  app.test_client()
 
+
 @mock_dynamodb2
 class TestLocationList(BaseTestCase):
 
@@ -43,6 +44,7 @@ class TestLocationList(BaseTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, TestResources.LOCATION_LISTS[0])
 
+
 @mock_dynamodb2
 class TestLocation(BaseTestCase):
 
@@ -55,3 +57,20 @@ class TestLocation(BaseTestCase):
         response = self.client.get('/locations/LOC2')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, TestResources.LOCATIONS[1])
+
+
+@mock_dynamodb2
+class TestKaikouraCase(unittest.TestCase):
+    def setUp(self):
+        app = create_app()
+        self.client =  app.test_client()
+
+    def test_get_one(self):
+        response = self.client.get('/locations/KBZ')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json['name'], 'Kaikoura')
+
+    def test_is_in_defaul_list(self):
+        response = self.client.get('/location_lists/NZ')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('KBZ', response.json['locations'])
