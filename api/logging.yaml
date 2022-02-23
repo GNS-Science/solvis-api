@@ -38,6 +38,16 @@ loggers:
     handlers: [console]
     propagate: no
 
+  process_solution:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
+
+  aws_util:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
+
 root:
-  level: WARNING
+  level: INFO
   handlers: [console]
