@@ -18,6 +18,12 @@ log = logging.getLogger(__name__)
 headers={"x-api-key":API_KEY}
 toshi_api = ToshiApi(API_URL, S3_URL, None, with_schema_validation=False, headers=headers)
 
+if os.path.exists(LOGGING_CFG):
+    with open(LOGGING_CFG, 'rt') as f:
+        config = yaml.safe_load(f.read())
+    logging.config.dictConfig(config)
+else:
+    logging.basicConfig(level=logging.INFO)
 
 def process_solution_request(message):
 
@@ -58,46 +64,21 @@ def process_solution_request(message):
 
     log.info("process_solution_request completed OK")
 
-def process_general_task_request(general_task_id, message):
-    gt = toshi_api.general_task.get_general_task_subtasks(general_task_id)
-
-    for node in gt['children']['edges']:
-
-        at = node['node']['child']
-        solution = at.get('inversion_solution')
-
-        #create a soluton message
-        msg = copy.copy(message)
-        msg['solution_id'] = solution.get('id')
-        assert not msg.get('general_task_id')
-        publish_message(msg)
 
 def process_event(evt):
 
     print(evt)
-
     message = json.loads(evt['Sns']['Message'])
 
     _id = message['id']
-
-    general_task_id = message.pop('general_task_id', None) #pop the GT id - we don't want a loop
     solution_id = message.get('solution_id')
 
-    if general_task_id:
-        process_general_task_request(general_task_id, message)
-    elif solution_id:
+    if solution_id:
         process_solution_request(message)
     else:
-        raise ValueError("need one of solution_id or general_task_id")
+        raise ValueError("need a solution_id")
 
 def handler(event, context):
-
-    if os.path.exists(LOGGING_CFG):
-        with open(LOGGING_CFG, 'rt') as f:
-            config = yaml.safe_load(f.read())
-        logging.config.dictConfig(config)
-    else:
-        logging.basicConfig(level=logging.INFO)
 
     for evt in event.get('Records', []):
         process_event(evt)

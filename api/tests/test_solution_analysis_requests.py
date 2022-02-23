@@ -7,7 +7,7 @@ from unittest import mock
 from moto import mock_dynamodb2, mock_sns, mock_sts, mock_sqs
 
 from api.api import create_app
-from api.config import SNS_TOPIC
+from api.config import SNS_IS_TOPIC
 import logging
 
 from api import process_solution
@@ -21,12 +21,12 @@ def test_publish_subject():
 
     topic_arn = None
     for t in response.get('Topics'):
-        if SNS_TOPIC in t['TopicArn']:
+        if SNS_IS_TOPIC in t['TopicArn']:
             topic_arn = t
             break
 
     if not topic_arn:
-        conn.create_topic(Name=SNS_TOPIC)
+        conn.create_topic(Name=SNS_IS_TOPIC)
         topic_arn = response["Topics"][0]["TopicArn"]
         response = conn.list_topics()
         print(response)

@@ -43,7 +43,8 @@ custom:
   region: ${opt:region, self:provider.region}
   deletion_policy: Delete
   topic_name: ${self:custom.stack_name}-analyse-inversion-solution
-  topic_arn: arn:aws:sns:${self:custom.region}:${aws:accountId}:${self:custom.topic_name}
+  #topic_arn: arn:aws:sns:${self:custom.region}:${aws:accountId}:${self:custom.topic_name}
+  gt_topic_name: ${self:custom.stack_name}-analyse-general-task
   solvis_api_url: TODO-${self:custom.stage}
   http_api_path: /${self.custom.stage}
   cw_app_name_api: ${self:custom.stack_name}-API
@@ -132,7 +133,8 @@ functions:
 
     environment:
       STACK_NAME: ${self:custom.stack_name}
-      SNS_TOPIC: ${self:custom.topic_name}
+      SNS_IS_TOPIC: ${self:custom.topic_name}
+      SNS_GT_TOPIC: ${self:custom.gt_topic_name}
       SLS_OFFLINE: ${env:SLS_OFFLINE}
       DEPLOYMENT_STAGE: ${self:custom.stage}
 
@@ -182,4 +184,20 @@ functions:
       DEPLOYMENT_STAGE: ${self:custom.stage}
       PYNAMODB_CONFIG: "./api/pynamodb_config.py"
       CLOUDWATCH_APP_NAME: ${self:custom.cw_app_name_analysis}
+
+  analyse-general-task:
+    description: The General Task handler request  ${self:service}
+    handler: api/process_general_task.handler
+    memorySize: 1028 # optional, in MB, default is 1024
+    timeout: 10 # optional, in seconds, default is 6
+    events:
+      - sns:
+          topicName: ${self:custom.gt_topic_name}
+    environment:
+      NZSHM22_TOSHI_API_URL: ${env:NZSHM22_TOSHI_API_URL}
+      NZSHM22_TOSHI_API_ENABLED: ${env:NZSHM22_TOSHI_API_ENABLED}
+      NZSHM22_TOSHI_API_KEY: ${env:NZSHM22_TOSHI_API_KEY}
+      SLS_OFFLINE: ${env:SLS_OFFLINE}
+      DEPLOYMENT_STAGE: ${self:custom.stage}
+      SNS_IS_TOPIC: ${self:custom.topic_name}
 
