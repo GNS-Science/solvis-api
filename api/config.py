@@ -88,7 +88,8 @@ S3_URL = os.getenv('NZSHM22_TOSHI_S3_URL',"http://localhost:4569")
 API_KEY = os.getenv('NZSHM22_TOSHI_API_KEY', "")
 
 WORK_PATH = os.getenv('NZSHM22_SCRIPT_WORK_PATH', "/tmp")
-SNS_TOPIC  = os.getenv('SNS_TOPIC', 'TOPIC_unconfigured')
+SNS_IS_TOPIC  = os.getenv('SNS_IS_TOPIC', 'IS_TOPIC_unconfigured')
+SNS_GT_TOPIC  = os.getenv('SNS_GT_TOPIC', 'GT_TOPIC_unconfigured')
 
 IS_OFFLINE = boolean_env('SLS_OFFLINE') #set by serverless-wsgi plugin
 IS_TESTING = boolean_env('TESTING', 'False')

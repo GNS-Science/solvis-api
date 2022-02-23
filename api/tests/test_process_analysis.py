@@ -47,47 +47,47 @@ def side_effect_get(*args, **kwargs):
     else:
         return None #
 
-#@mock_dynamodb2
-class TestHandleGeneralTaskRequest(unittest.TestCase):
+# #@mock_dynamodb2
+# class TestHandleGeneralTaskRequest(unittest.TestCase):
 
-    @mock.patch('api.process_solution.requests.get', side_effect=[MockResponse(LOCATIONS, 200),MockResponse(RADII[-1], 200)])
-    def test_process_without_gt_or_sol_id_raises_two(self, m1):
-        with self.assertRaises(ValueError) as cm:
-            msg = {'id': "ABABBA", 'solution_id': None, 'locations_list_id': "NZ", 'radii_list_id': "6"}
-            sns_event = {"Records": [{'Sns': {'Message': json.dumps(msg)}}]}
-            process_solution.handler(sns_event, {})
+#     @mock.patch('api.process_solution.requests.get', side_effect=[MockResponse(LOCATIONS, 200),MockResponse(RADII[-1], 200)])
+#     def test_process_without_gt_or_sol_id_raises_two(self, m1):
+#         with self.assertRaises(ValueError) as cm:
+#             msg = {'id': "ABABBA", 'solution_id': None, 'locations_list_id': "NZ", 'radii_list_id': "6"}
+#             sns_event = {"Records": [{'Sns': {'Message': json.dumps(msg)}}]}
+#             process_solution.handler(sns_event, {})
 
-    @mock.patch('api.process_solution.requests.get', side_effect=[MockResponse(LOCATIONS, 200),MockResponse(RADII[-1], 200)])
-    @mock.patch('api.process_solution.process_general_task_request')
-    def test_process_gt_id(self, m1, m2):
-        msg = {'id': "ABABBA", 'general_task_id': "XGT", 'locations_list_id': "NZ", 'radii_list_id': "6"}
-        sns_event = {"Records": [{'Sns': {'Message': json.dumps(msg)}}]}
-        process_solution.handler(sns_event, {})
+#     @mock.patch('api.process_solution.requests.get', side_effect=[MockResponse(LOCATIONS, 200),MockResponse(RADII[-1], 200)])
+#     @mock.patch('api.process_solution.process_general_task_request')
+#     def test_process_gt_id(self, m1, m2):
+#         msg = {'id': "ABABBA", 'general_task_id': "XGT", 'locations_list_id': "NZ", 'radii_list_id': "6"}
+#         sns_event = {"Records": [{'Sns': {'Message': json.dumps(msg)}}]}
+#         process_solution.handler(sns_event, {})
 
-        m1.assert_called_once()
-        m1.assert_called_once_with("XGT", {'id': 'ABABBA', 'locations_list_id': 'NZ', 'radii_list_id': '6'})
+#         m1.assert_called_once()
+#         m1.assert_called_once_with("XGT", {'id': 'ABABBA', 'locations_list_id': 'NZ', 'radii_list_id': '6'})
 
-    @mock.patch('api.process_solution.requests.get', side_effect=[MockResponse(LOCATIONS, 200),MockResponse(RADII[-1], 200)])
-    @mock.patch('api.process_solution.process_general_task_request')
-    def test_process_gt_id_only_radii(self, m1, m2):
-        msg = {'id': "ABABBA", 'general_task_id': "XGT", 'locations_list_id': "NZ", 'radii_list_id': "6",
-                'only_radii_kms' :"10e3"}
-        sns_event = {"Records": [{'Sns': {'Message': json.dumps(msg)}}]}
-        process_solution.handler(sns_event, {})
+#     @mock.patch('api.process_solution.requests.get', side_effect=[MockResponse(LOCATIONS, 200),MockResponse(RADII[-1], 200)])
+#     @mock.patch('api.process_solution.process_general_task_request')
+#     def test_process_gt_id_only_radii(self, m1, m2):
+#         msg = {'id': "ABABBA", 'general_task_id': "XGT", 'locations_list_id': "NZ", 'radii_list_id': "6",
+#                 'only_radii_kms' :"10e3"}
+#         sns_event = {"Records": [{'Sns': {'Message': json.dumps(msg)}}]}
+#         process_solution.handler(sns_event, {})
 
-        m1.assert_called_once()
-        m1.assert_called_once_with("XGT", {'id': 'ABABBA', 'locations_list_id': 'NZ', 'radii_list_id': '6', 'only_radii_kms': '10e3'})
+#         m1.assert_called_once()
+#         m1.assert_called_once_with("XGT", {'id': 'ABABBA', 'locations_list_id': 'NZ', 'radii_list_id': '6', 'only_radii_kms': '10e3'})
 
-    @mock.patch('api.process_solution.requests.get', side_effect=[MockResponse(LOCATIONS, 200),MockResponse(RADII[-1], 200)])
-    @mock.patch('api.process_solution.process_general_task_request')
-    def test_process_gt_id_only_loc(self, m1, m2):
-        msg = {'id': "ABABBA", 'general_task_id': "XGT", 'locations_list_id': "NZ", 'radii_list_id': "6",
-                'only_location_ids': 'LOC1'}
-        sns_event = {"Records": [{'Sns': {'Message': json.dumps(msg)}}]}
-        process_solution.handler(sns_event, {})
+#     @mock.patch('api.process_solution.requests.get', side_effect=[MockResponse(LOCATIONS, 200),MockResponse(RADII[-1], 200)])
+#     @mock.patch('api.process_solution.process_general_task_request')
+#     def test_process_gt_id_only_loc(self, m1, m2):
+#         msg = {'id': "ABABBA", 'general_task_id': "XGT", 'locations_list_id': "NZ", 'radii_list_id': "6",
+#                 'only_location_ids': 'LOC1'}
+#         sns_event = {"Records": [{'Sns': {'Message': json.dumps(msg)}}]}
+#         process_solution.handler(sns_event, {})
 
-        m1.assert_called_once()
-        m1.assert_called_once_with("XGT", {'id': 'ABABBA', 'locations_list_id': 'NZ', 'radii_list_id': '6', 'only_location_ids': 'LOC1'})
+#         m1.assert_called_once()
+#         m1.assert_called_once_with("XGT", {'id': 'ABABBA', 'locations_list_id': 'NZ', 'radii_list_id': '6', 'only_location_ids': 'LOC1'})
 
 class TestHandleSolutionRequest(unittest.TestCase):
 

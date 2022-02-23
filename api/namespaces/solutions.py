@@ -15,7 +15,7 @@ from flask_restx import Namespace, Resource, fields
 from pandas.io import pickle
 from api.toshi_api.toshi_api import ToshiApi
 
-from api.config import (API_KEY, API_URL, S3_URL, SNS_TOPIC, IS_OFFLINE, IS_TESTING)
+from api.config import (API_KEY, API_URL, S3_URL, SNS_IS_TOPIC, SNS_GT_TOPIC, IS_OFFLINE, IS_TESTING)
 from api.solvis import multi_city_events
 
 import pandas as pd
@@ -81,7 +81,10 @@ class SolutionAnalysisList(Resource):
 
         msg = {'id': _id, 'solution_id': solution_id, 'locations_list_id': locations_list_id, 'radii_list_id': radii_list_id}
 
-        publish_message(msg)
+        if not solution:
+            api.abort(404, f'The requested Inversion Solution ({solution_id}) was not found.')
+        else:
+            publish_message(msg, topic=SNS_IS_TOPIC)
 
         api.payload['id'] = _id
         return api.payload
@@ -127,6 +130,6 @@ class GeneralTaskAnalysisRequest(Resource):
         if not gt:
             api.abort(404, f'The requested General Task ({general_task_id}) was not found.')
         else:
-            publish_message(api.payload)
+            publish_message(api.payload, topic=SNS_GT_TOPIC)
 
         return api.payload

@@ -4,40 +4,40 @@ from functools import lru_cache
 import json
 import logging
 import boto3
-from api.config import (SNS_TOPIC, IS_OFFLINE, IS_TESTING)
+from api.config import (SNS_IS_TOPIC, IS_OFFLINE, IS_TESTING)
 
 log = logging.getLogger(__name__)
 
 def get_sns_client():
     AWS_REGION = 'ap-southeast-2'
     if IS_OFFLINE and not IS_TESTING:
-        log.debug(f"**OFFLINE SETUP** SNS_TOPIC {SNS_TOPIC}")
+        log.debug(f"**OFFLINE SNS SETUP**")
         return boto3.client('sns', endpoint_url="http://127.0.0.1:4002", region_name=AWS_REGION)
     else:
         return boto3.client('sns', region_name=AWS_REGION)
 
-@lru_cache(maxsize=1)
-def get_sns_topic_arn():
-    log.debug(f"get_sns_topic_arn for {SNS_TOPIC}")
+@lru_cache(maxsize=2)
+def get_sns_topic_arn(topic_name):
+    log.debug(f"get_sns_topic_arn for {topic_name}")
 
     conn = get_sns_client()
     response = conn.list_topics()
 
     topic_arn = None
     for topic in response.get('Topics'):
-        if SNS_TOPIC in topic['TopicArn']:
+        if topic_name in topic['TopicArn']:
             return topic['TopicArn']
 
     #need to create the topic
-    conn.create_topic(Name=SNS_TOPIC)
+    conn.create_topic(Name=topic_name)
     response = conn.list_topics()
     topic_arn = response["Topics"][0]["TopicArn"]
     return topic_arn
 
-def publish_message(message):
+def publish_message(message, topic=SNS_IS_TOPIC):
     log.debug(f"publish_message {message}")
     client = get_sns_client()
-    topic_arn = get_sns_topic_arn()
+    topic_arn = get_sns_topic_arn(topic)
     log.debug(f'TOPIC ARN {topic_arn}')
     try:
         response = client.publish (
