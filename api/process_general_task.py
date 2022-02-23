@@ -33,11 +33,14 @@ def process_general_task_request(general_task_id, message):
         at = node['node']['child']
         solution = at.get('inversion_solution')
 
-        #create a soluton message
-        msg = copy.copy(message)
-        msg['solution_id'] = solution.get('id')
-        msg.pop('general_task_id')
-        publish_message(msg)
+        if solution:
+            #create a soluton message
+            msg = copy.copy(message)
+            msg['solution_id'] = solution.get('id')
+            msg.pop('general_task_id')
+            publish_message(msg)
+        else:
+            log.info(f"No solution for Automation Task: {at}")
 
 def process_event(evt):
 
