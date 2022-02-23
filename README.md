@@ -25,9 +25,9 @@ sls wsgi serve
 
 ### Run full stack locally
 ```
-sls dynamodb start --stage dev &\
-SLS_OFFLINE=1 sls offline-sns start &\
-SLS_OFFLINE=1 sls wsgi serve
+npx serverless dynamodb start --stage dev &\
+SLS_OFFLINE=1 npx serverless offline-sns start &\
+SLS_OFFLINE=1 npx serverless wsgi serve
 ```
 
 ### Unit tests

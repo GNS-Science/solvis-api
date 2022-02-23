@@ -23,6 +23,24 @@ class GeneralTask(object):
         self.api = api
         assert isinstance(api, ToshiClientBase)
 
+    def get_general_task(self, id):
+        qry = '''
+            query one_general ($id:ID!)  {
+              node(id: $id) {
+                __typename
+                ... on GeneralTask {
+                  id
+                  title
+                  description
+                  created
+                }
+              }
+            }
+            '''
+        input_variables = dict(id=id)
+        executed = self.api.run_query(qry, input_variables)
+        return executed['node']
+
     def get_general_task_subtasks(self, id):
         qry = '''
             query one_general ($id:ID!)  {

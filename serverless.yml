@@ -6,7 +6,7 @@ plugins:
   - serverless-python-requirements
   - serverless-wsgi
   - serverless-dynamodb-local
-
+  - serverless-plugin-warmup
 package:
   individually: false
   exclude:
@@ -43,7 +43,8 @@ custom:
   region: ${opt:region, self:provider.region}
   deletion_policy: Delete
   topic_name: ${self:custom.stack_name}-analyse-inversion-solution
-  topic_arn: arn:aws:sns:${self:custom.region}:${aws:accountId}:${self:custom.topic_name}
+  #topic_arn: arn:aws:sns:${self:custom.region}:${aws:accountId}:${self:custom.topic_name}
+  gt_topic_name: ${self:custom.stack_name}-analyse-general-task
   solvis_api_url: TODO-${self:custom.stage}
   http_api_path: /${self.custom.stage}
   cw_app_name_api: ${self:custom.stack_name}-API
@@ -84,10 +85,18 @@ custom:
 
   serverless-offline-sns:
     port: 4002 # a free port for the sns server to run on
-    debug: true
+    debug: false
     # host: 0.0.0.0 # Optional, defaults to 127.0.0.1 if not provided to serverless-offline
     # sns-endpoint: http://127.0.0.1:4567 # Optional. Only if you want to use a custom endpoint
-    accountId: ${aws:accountId} #23456789012 # Optional
+    # accountId: ${aws:accountId} #23456789012 # Optional
+
+  #Lambda warmer see https://www.serverless.com/plugins/serverless-plugin-warmup
+  warmup:
+    lowConcurrencyWarmer:
+      enabled: true
+      events:
+        - schedule: rate(5 minutes)
+      concurrency: 1
 
 provider:
   name: aws
@@ -110,9 +119,10 @@ provider:
          - "cloudwatch:PutMetricData"
        Resource: "*"
 
-  apiKeys:
-    - name: TempApiKey-${self:custom.stack_name}
-      description: Api key until we have an auth function # Optional
+  apiGateway:
+    apiKeys:
+      - name: TempApiKey-${self:custom.stack_name}
+        description: Api key until we have an auth function # Optional
 
 functions:
   app:
@@ -123,11 +133,11 @@ functions:
 
     environment:
       STACK_NAME: ${self:custom.stack_name}
-      SNS_TOPIC_ARN: ${self:custom.topic_arn}
+      SNS_IS_TOPIC: ${self:custom.topic_name}
+      SNS_GT_TOPIC: ${self:custom.gt_topic_name}
       SLS_OFFLINE: ${env:SLS_OFFLINE}
       DEPLOYMENT_STAGE: ${self:custom.stage}
 
-      #API_ENDPOINT: ${env:NZSHM22_SOLVIS_API_URL}
       NZSHM22_TOSHI_API_URL: ${env:NZSHM22_TOSHI_API_URL}
       NZSHM22_TOSHI_API_ENABLED: ${env:NZSHM22_TOSHI_API_ENABLED}
       NZSHM22_TOSHI_API_KEY: ${env:NZSHM22_TOSHI_API_KEY}
@@ -150,6 +160,11 @@ functions:
           method: ANY
           private: true
 
+    warmup:
+      lowConcurrencyWarmer:
+        enabled:
+          - test
+          - prod
 
   analyse-inversion-solution:
     description: The analysis handler of ${self:service}
@@ -169,4 +184,20 @@ functions:
       DEPLOYMENT_STAGE: ${self:custom.stage}
       PYNAMODB_CONFIG: "./api/pynamodb_config.py"
       CLOUDWATCH_APP_NAME: ${self:custom.cw_app_name_analysis}
+
+  analyse-general-task:
+    description: The General Task handler request  ${self:service}
+    handler: api/process_general_task.handler
+    memorySize: 1028 # optional, in MB, default is 1024
+    timeout: 10 # optional, in seconds, default is 6
+    events:
+      - sns:
+          topicName: ${self:custom.gt_topic_name}
+    environment:
+      NZSHM22_TOSHI_API_URL: ${env:NZSHM22_TOSHI_API_URL}
+      NZSHM22_TOSHI_API_ENABLED: ${env:NZSHM22_TOSHI_API_ENABLED}
+      NZSHM22_TOSHI_API_KEY: ${env:NZSHM22_TOSHI_API_KEY}
+      SLS_OFFLINE: ${env:SLS_OFFLINE}
+      DEPLOYMENT_STAGE: ${self:custom.stage}
+      SNS_IS_TOPIC: ${self:custom.topic_name}
 
