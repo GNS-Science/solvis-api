@@ -38,7 +38,7 @@ def publish_message(message):
     log.debug(f"publish_message {message}")
     client = get_sns_client()
     topic_arn = get_sns_topic_arn()
-    # print(f'TOPIC ARN {topic_arn}')
+    log.debug(f'TOPIC ARN {topic_arn}')
     try:
         response = client.publish (
             TargetArn = topic_arn,
