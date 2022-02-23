@@ -42,8 +42,7 @@ custom:
   stack_name: ${self:custom.app_acronym}-${self:custom.stage}
   region: ${opt:region, self:provider.region}
   deletion_policy: Delete
-  topic_name: ${self:custom.stack_name}-analyse-inversion-solution
-  #topic_arn: arn:aws:sns:${self:custom.region}:${aws:accountId}:${self:custom.topic_name}
+  is_topic_name: ${self:custom.stack_name}-analyse-inversion-solution
   gt_topic_name: ${self:custom.stack_name}-analyse-general-task
   solvis_api_url: TODO-${self:custom.stage}
   http_api_path: /${self.custom.stage}
@@ -135,7 +134,7 @@ functions:
 
     environment:
       STACK_NAME: ${self:custom.stack_name}
-      SNS_IS_TOPIC: ${self:custom.topic_name}
+      SNS_IS_TOPIC: ${self:custom.is_topic_name}
       SNS_GT_TOPIC: ${self:custom.gt_topic_name}
       SLS_OFFLINE: ${env:SLS_OFFLINE}
       DEPLOYMENT_STAGE: ${self:custom.stage}
@@ -175,7 +174,7 @@ functions:
     timeout: 300 # optional, in seconds, default is 6
     events:
       - sns:
-          topicName: ${self:custom.topic_name}         #${self:custom.topic_arn}
+          topicName: ${self:custom.is_topic_name}
     environment:
       NZSHM22_SOLVIS_API_URL: ${env:NZSHM22_SOLVIS_API_URL}
       NZSHM22_SOLVIS_API_KEY: ${env:NZSHM22_SOLVIS_API_KEY}
@@ -188,10 +187,10 @@ functions:
       CLOUDWATCH_APP_NAME: ${self:custom.cw_app_name_analysis}
 
   analyse-general-task:
-    description: The General Task handler request  ${self:service}
+    description: The General Task handler, does a fan-out to the analyse-inversion-solution handler.
     handler: api/process_general_task.handler
-    memorySize: 1028 # optional, in MB, default is 1024
-    timeout: 10 # optional, in seconds, default is 6
+    memorySize: 10240 # optional, in MB, default is 1024
+    timeout: 60 # optional, in seconds, default is 6
     events:
       - sns:
           topicName: ${self:custom.gt_topic_name}
@@ -201,5 +200,5 @@ functions:
       NZSHM22_TOSHI_API_KEY: ${env:NZSHM22_TOSHI_API_KEY}
       SLS_OFFLINE: ${env:SLS_OFFLINE}
       DEPLOYMENT_STAGE: ${self:custom.stage}
-      SNS_IS_TOPIC: ${self:custom.topic_name}
+      SNS_IS_TOPIC: ${self:custom.is_topic_name}
 
