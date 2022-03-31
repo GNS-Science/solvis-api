@@ -1,7 +1,6 @@
 # solvis-api
 
-a serverless web API for analysis of opensha modular Inversion Solutions
-
+REST API for analysis of opensha modular Inversion Solutions. Using Flask with Serverless framework to operate as a AWS Lambda API.
 
 The API openAPI/Swagger documentation is served by default from the service root.
 
