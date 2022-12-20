@@ -1,4 +1,3 @@
-import copy
 import json
 import logging
 import logging.config
@@ -7,8 +6,8 @@ import os
 import requests
 import solvis
 import yaml
+from solvis_store import model, solvis_db
 
-from solvis_api.aws_util import publish_message
 from solvis_api.config import (
     API_KEY,
     API_URL,
@@ -17,11 +16,8 @@ from solvis_api.config import (
     S3_URL,
     SOLVIS_API_KEY,
     SOLVIS_API_URL,
-    USE_API,
     WORK_PATH,
 )
-from solvis_api.datastore import model
-from solvis_api.datastore.solvis_db import *
 from solvis_api.toshi_api.toshi_api import ToshiApi
 
 log = logging.getLogger(__name__)
@@ -46,8 +42,8 @@ def process_solution_request(message):
     locations_list_id = message['locations_list_id']
     only_location_ids = message.get(
         'only_location_ids'
-    )  #'optional location identifiers, comma-delmited list e.g. `WLG,PMR,ZQN`'),
-    only_radii_kms = message.get('only_radii_kms')  #'optional list of radius in km. e.g. `10,20`'))
+    )  # 'optional location identifiers, comma-delmited list e.g. `WLG,PMR,ZQN`'),
+    only_radii_kms = message.get('only_radii_kms')  # 'optional list of radius in km. e.g. `10,20`'))
 
     solvis_headers = {'x-api-key': SOLVIS_API_KEY}
     locations = requests.get(
@@ -74,11 +70,12 @@ def process_solution_request(message):
     # ensure tables exist
     model.migrate()
 
-    save_solution_location_radii(
-        solution_id, get_location_radius_rupture_models(solution_id, solution, locations=locations, radii=radii)
+    solvis_db.save_solution_location_radii(
+        solution_id,
+        solvis_db.get_location_radius_rupture_models(solution_id, solution, locations=locations, radii=radii),
     )
-    save_solution_ruptures(solution_id, get_ruptures_with_rates(solution_id, solution))
-    save_solution_fault_sections(solution_id, get_fault_section_models(solution_id, solution))
+    solvis_db.save_solution_ruptures(solution_id, solvis_db.get_ruptures_with_rates(solution_id, solution))
+    solvis_db.save_solution_fault_sections(solution_id, solvis_db.get_fault_section_models(solution_id, solution))
 
     log.info("process_solution_request completed OK")
 
@@ -87,8 +84,6 @@ def process_event(evt):
 
     print(evt)
     message = json.loads(evt['Sns']['Message'])
-
-    _id = message['id']
     solution_id = message.get('solution_id')
 
     if solution_id:

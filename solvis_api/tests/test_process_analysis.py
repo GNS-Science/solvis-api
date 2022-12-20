@@ -3,7 +3,7 @@ import json
 import unittest
 from unittest import mock
 
-from moto import mock_dynamodb2
+from moto import mock_dynamodb
 
 from solvis_api import process_solution
 from solvis_api.config import SOLVIS_API_URL
@@ -57,7 +57,7 @@ def side_effect_get(*args, **kwargs):
         return None  #
 
 
-# #@mock_dynamodb2
+# #@mock_dynamodb
 # class TestHandleGeneralTaskRequest(unittest.TestCase):
 
 #     @mock.patch('solvis_api.process_solution.requests.get', side_effect=[MockResponse(LOCATIONS, 200),MockResponse(RADII[-1], 200)])

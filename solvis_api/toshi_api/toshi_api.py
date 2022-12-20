@@ -1,8 +1,4 @@
-# import base64
-# import json
 import os
-from datetime import datetime as dt
-from hashlib import md5
 from pathlib import Path
 
 import requests

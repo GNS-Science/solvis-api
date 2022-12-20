@@ -4,24 +4,10 @@ import logging
 import logging.config
 import os
 
-import requests
-import solvis
 import yaml
 
 from solvis_api.aws_util import publish_message
-from solvis_api.config import (
-    API_KEY,
-    API_URL,
-    IS_OFFLINE,
-    LOGGING_CFG,
-    S3_URL,
-    SOLVIS_API_KEY,
-    SOLVIS_API_URL,
-    USE_API,
-    WORK_PATH,
-)
-from solvis_api.datastore import model
-from solvis_api.datastore.solvis_db import *
+from solvis_api.config import API_KEY, API_URL, LOGGING_CFG, S3_URL
 from solvis_api.toshi_solvis_api.toshi_api import ToshiApi
 
 log = logging.getLogger(__name__)
@@ -61,7 +47,6 @@ def process_event(evt):
 
     message = json.loads(evt['Sns']['Message'])
 
-    _id = message['id']
     general_task_id = message.get('general_task_id', None)
 
     if general_task_id:

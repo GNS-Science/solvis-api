@@ -6,9 +6,6 @@ from moto import mock_dynamodb
 
 import solvis_api.datastore.resources
 from solvis_api.api import create_app
-
-# Set up your local config, from environment variables, with some sone defaults
-from solvis_api.config import API_KEY, API_URL, IS_OFFLINE, S3_URL, USE_API, WORK_PATH
 from solvis_api.datastore.datastore import get_datastore
 
 

@@ -1,5 +1,5 @@
 # test_solution_location.py
-
+# noqa
 
 expect_rs_with_rates = """
        rupture  section  Rupture Index  Magnitude  Average Rake (degrees)         Area (m^2)     Length (m)  Annual Rate

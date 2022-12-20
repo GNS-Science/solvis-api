@@ -1,25 +1,20 @@
 #!python
 
-import io
 import json
 import logging
 from datetime import datetime as dt
-from functools import lru_cache
 
 import geopandas as gpd
-import pandas as pd
 import shapely
-from flask import current_app
+import solvis
 from flask_restx import Namespace, Resource, fields, reqparse
-from solvis import InversionSolution, circle_polygon, new_sol, section_participation
+from solvis_store.solvis_db_query import matched_rupture_sections_gdf
 
 from solvis_api.cloudwatch import ServerlessMetricWriter
 
 # Set up your local config, from environment variables, with some sone defaults
-from solvis_api.config import API_KEY, API_URL, CLOUDWATCH_APP_NAME, IS_OFFLINE, S3_URL, USE_API, WORK_PATH
+from solvis_api.config import API_KEY, API_URL, CLOUDWATCH_APP_NAME, S3_URL
 from solvis_api.datastore.resources import location_by_id
-from solvis_api.datastore.solvis_db_query import matched_rupture_sections_gdf
-from solvis_api.solvis import multi_city_events
 from solvis_api.toshi_api.toshi_api import ToshiApi
 
 db_metrics = ServerlessMetricWriter(lambda_name=CLOUDWATCH_APP_NAME, metric_name="MethodDuration")
@@ -37,7 +32,7 @@ def locations_geojson(locations, radius_km):
     for loc in locations:
         log.debug(f'LOC {loc}')
         item = location_by_id(loc)
-        polygon = circle_polygon(radius_km * 1000, lat=item.get('latitude'), lon=item.get('longitude'))
+        polygon = solvis.circle_polygon(radius_km * 1000, lat=item.get('latitude'), lon=item.get('longitude'))
         feature = dict(
             id=loc,
             type="Feature",
@@ -129,8 +124,8 @@ class SolutionAnalysisGeojsonComposite(Resource):
         location_features = locations_geojson(location_ids.split(','), radius_km)
 
         rupture_count, section_count = 0, 0
-        if not rupture_sections_gdf is None:
-            rupture_count = rupture_sections_gdf['magnitude.count'].sum() if not rupture_sections_gdf is None else 0
+        if rupture_sections_gdf is not None:
+            rupture_count = rupture_sections_gdf['magnitude.count'].sum() if rupture_sections_gdf is not None else 0
             section_count = rupture_sections_gdf.shape[0]
             geojson = gpd.GeoDataFrame(rupture_sections_gdf).to_json()
         else:

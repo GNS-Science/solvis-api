@@ -1,10 +1,8 @@
 # #!python
 import logging
 
-from flask import current_app, g
 from flask_restx import Namespace, Resource, fields
 
-# from solvis_api.resources import LOCATIONS, LOCATION_LISTS
 from solvis_api.datastore.datastore import get_ds
 
 log = logging.getLogger(__name__)
@@ -48,7 +46,7 @@ class LocationList(Resource):
 @location_lists.route('/<location_list_id>/locations')
 @locations.param('location_list_id', 'The location list identifier')
 @locations.response(404, 'Location not found')
-class Location(Resource):
+class LocationListLocations(Resource):
     @locations.doc('get_location_lists location data')
     @locations.marshal_with(location_model)
     def get(self, location_list_id):
@@ -69,7 +67,7 @@ class Location(Resource):
 @locations.route('/<location_id>')
 @locations.param('location_id', 'The location identifier')
 @locations.response(404, 'Location not found')
-class Location(Resource):
+class LocationId(Resource):
     @locations.doc('get_location')
     @locations.marshal_with(location_model)
     def get(self, location_id):
@@ -96,7 +94,7 @@ class LocationListList(Resource):
 @location_lists.route('/<location_list_id>')
 @location_lists.param('location_list_id', 'The location list identifier')
 @location_lists.response(404, 'Location not found')
-class Location(Resource):
+class LocationListId(Resource):
     @location_lists.doc('get_location_list_contents')
     @location_lists.marshal_with(location_list_model)
     def get(self, location_list_id):

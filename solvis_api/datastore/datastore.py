@@ -1,9 +1,6 @@
-from flask import _app_ctx_stack, current_app, g
+from flask import g
 
 import solvis_api.datastore.resources
-
-# from .model import SolutionLocationsRadiiDF
-
 
 """
 A Flask Extension class so we can make all our datastore resources configurable
@@ -42,10 +39,7 @@ class Datastore(object):
 
     def configure(self, resources):
         self._resources = resources
-        # self._resources.solutions = SolutionLocationsRadiiDF
 
     @property
     def resources(self):
-        # ctx = _app_ctx_stack.top
-        # if ctx is not None:
         return self._resources

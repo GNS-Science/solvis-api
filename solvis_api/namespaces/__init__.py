@@ -5,14 +5,6 @@ from .locations import location_lists, locations
 from .radii import api as radii
 from .solutions import api as solution_analysis
 
-# from .solution_analysis_geojson import api as solution_analysis_geojson
-
-
-# blueprint = Blueprint('api', __name__, url_prefix='/')
-
-# api = Api(blueprint, doc='/doc/')
-
-
 """
 The main entry point for the application.
 You need to initialize it with a Flask Application: ::
@@ -58,7 +50,8 @@ The endpoint parameter prefix all views and resources:
     proxy.
 """
 
-# see https://stackoverflow.com/questions/52087743/flask-restful-noauthorizationerror-missing-authorization-header/52208185
+
+# see https://stackoverflow.com/questions/52087743/flask-restful-noauthorizationerror-missing-authorization-header/52208185 # noqa
 # see https://github.com/flask-restful/flask-restful/issues/280#issuecomment-567186686
 class ErrorPropagatingApi(Api):
     """Flask-Restful has its own error handling facilities, this propagates errors to flask"""

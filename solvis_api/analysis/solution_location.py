@@ -10,11 +10,6 @@ Solvis_db
 
 # from pathlib import PurePath
 # import solvis
-
-# from solvis_api.datastore import model
-# from solvis_api.datastore.solvis_db import *
-# from solvis_api.datastore.solvis_db_query import *
-
 # name = "NZSHM22_InversionSolution-QXV0b21hdGlvblRhc2s6NTkzMHJ0YWJU.zip" #60hrs!
 
 # 60hr
@@ -63,7 +58,7 @@ radii = [10e3, 20e3, 30e3, 40e3, 50e3, 100e3, 250e4]  # AK could be larger ??
 #     sol = solvis.new_sol(sol, solvis.rupt_ids_above_rate(sol, 1e-20)) #TODO: the solvis function above 0 isn't working
 
 #     clean_slate()
-#     save_solution_location_radii(solution_id, get_location_radius_rupture_models(solution_id, sol, locations=locs, radii=radii))
+#     save_solution_location_radii(solution_id, get_location_radius_rupture_models(solution_id, sol, locations=locs, radii=radii)) # noqa
 #     save_solution_ruptures(solution_id, get_ruptures_with_rates(solution_id, sol))
 #     save_solution_fault_sections(solution_id, get_fault_section_models(solution_id, sol))
 
@@ -75,5 +70,5 @@ radii = [10e3, 20e3, 30e3, 40e3, 50e3, 100e3, 250e4]  # AK could be larger ??
 #     for locs in [['WLG'], ['WLG', 'NSN'], ['WLG', 'PMR', "NSN"]]:
 #         rupture_sections_gdf = matched_rupture_sections_gdf(solution_id, locs, radius, minimum_rate)
 #         if not rupture_sections_gdf is None:
-#             solvis.export_geojson(rupture_sections_gdf, f"{'_'.join(locs)}_rad({radius})_rate({minimum_rate})_query_result.geojson")
+#             solvis.export_geojson(rupture_sections_gdf, f"{'_'.join(locs)}_rad({radius})_rate({minimum_rate})_query_result.geojson")  # noqa
 #     print('DONE')

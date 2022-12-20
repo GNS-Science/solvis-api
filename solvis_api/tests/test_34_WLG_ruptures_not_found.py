@@ -1,12 +1,11 @@
 import unittest
 
-from moto import mock_dynamodb2
+from moto import mock_dynamodb
+from solvis_store import model
+from solvis_store.solvis_db_query import get_rupture_ids
 
-from solvis_api.datastore import model
-from solvis_api.datastore.solvis_db_query import get_rupture_ids
 
-
-@mock_dynamodb2
+@mock_dynamodb
 class RutupreIdEdgecaseTest(unittest.TestCase):
     def setUp(self):
         model.SolutionLocationRadiusRuptureSet.create_table(wait=True)

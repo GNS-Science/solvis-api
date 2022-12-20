@@ -2,10 +2,8 @@ import concurrent.futures
 import itertools
 import threading
 from datetime import datetime as dt
-from pathlib import PurePath
 
-import pandas as pd
-from solvis import *
+import solvis
 
 lock = threading.Lock()
 
@@ -27,7 +25,7 @@ def city_combinations(cities, pop_impacted=1e6, combo_max=5):
 
 
 def pre_process(sol, cities, site_keys, radii):
-    rupts_in_all_locs = set(sol.ruptures['Rupture Index'])
+    # rupts_in_all_locs = set(sol.ruptures['Rupture Index'])
 
     locations = {}
     for sk in site_keys:
@@ -37,7 +35,7 @@ def pre_process(sol, cities, site_keys, radii):
         location['radius'] = {}
         for radius in radii:
             location['radius'][radius] = {}
-            polygon = circle_polygon(radius_m=radius, lat=location['info'][1], lon=location['info'][2])
+            polygon = solvis.circle_polygon(radius_m=radius, lat=location['info'][1], lon=location['info'][2])
             rupts = sol.get_ruptures_intersecting(polygon)
             # print(f"city: {site_key}, radius: {radius} , Pop: {location['info'][3]}, ruptures: {len(rupts)}")
             location['radius'][radius]['ruptures'] = rupts
@@ -71,8 +69,8 @@ def process(args):
 
 def main(sol, cities, combos, radii):
     """ """
-    t0 = dt.now()
-    sol = new_sol(sol, rupt_ids_above_rate(sol, 0))
+    # t0 = dt.now()
+    sol = solvis.new_sol(sol, solvis.rupt_ids_above_rate(sol, 0))
     # solutions = [("60hr-J0YWJU.zip", sol)]
     t1 = dt.now()
 
@@ -82,7 +80,6 @@ def main(sol, cities, combos, radii):
     print(f'pre-process events for {len(cities)} cities in {(t2-t1)}')
 
     rupture_radius_site_sets = {}
-    site_set_rupts = {}
 
     def generate_args(sol, city_radius_ruptures, rupture_radius_site_sets):
         for site_set in combos:

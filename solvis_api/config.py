@@ -7,11 +7,8 @@ import base64
 import enum
 import json
 import os
-import urllib.parse
-from pathlib import PurePath
 
 import boto3
-import solvis
 from botocore.exceptions import ClientError
 
 # Use this code snippet in your app.

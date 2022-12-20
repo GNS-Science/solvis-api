@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 def get_sns_client():
     AWS_REGION = 'ap-southeast-2'
     if IS_OFFLINE and not IS_TESTING:
-        log.debug(f"**OFFLINE SNS SETUP**")
+        log.debug("**OFFLINE SNS SETUP**")
         return boto3.client('sns', endpoint_url="http://127.0.0.1:4002", region_name=AWS_REGION)
     else:
         return boto3.client('sns', region_name=AWS_REGION)
@@ -52,4 +52,4 @@ def publish_message(message, topic=SNS_IS_TOPIC):
     except Exception as err:
         log.error(err)
         raise
-    log.info(f"publish_message OK")
+    log.info("publish_message OK")

@@ -5,11 +5,11 @@ import logging.config
 import os
 
 import yaml
-from flask import Flask, g, request
+from flask import Flask
 from flask_cors import CORS
+from solvis_store import model
 
 from solvis_api.config import IS_OFFLINE, IS_TESTING, LOGGING_CFG
-from solvis_api.datastore import model
 from solvis_api.namespaces import api  # , blueprint
 
 # from flask.logging import default_handler
@@ -23,8 +23,6 @@ def create_app():
     :param locations_data_module: module path
     :return: Initialized Flask app
     """
-    log = logging.getLogger(__name__)
-
     app = Flask(__name__)
     api.init_app(app)
     CORS(app)
@@ -35,14 +33,8 @@ def create_app():
     if IS_OFFLINE and not IS_TESTING:
         model.set_local_mode()
 
-    app.before_first_request(model.migrate)
-
-    # @app.before_request
-    # def hook():
-    #     log.debug('before_request endpoint: %s, url: %s, path: %s' % (
-    #         request.endpoint,
-    #         request.url,
-    #         request.path))
+    if not IS_TESTING:
+        model.migrate()
 
     return app
 

@@ -4,9 +4,8 @@ import unittest
 from unittest import mock
 
 import boto3
-from moto import mock_dynamodb2, mock_sns, mock_sqs, mock_sts
+from moto import mock_dynamodb, mock_sns, mock_sqs
 
-from solvis_api import process_solution
 from solvis_api.api import create_app
 from solvis_api.config import SNS_IS_TOPIC
 
@@ -40,7 +39,7 @@ def test_publish_subject():
     # assert 0
 
 
-@mock_dynamodb2
+@mock_dynamodb
 class TestGeneralTaskRequest(unittest.TestCase):
     def setUp(self):
         app = create_app()
@@ -65,7 +64,7 @@ class TestGeneralTaskRequest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-# @mock_dynamodb2
+# @mock_dynamodb
 # class TestHandleGeneralTaskRequest(unittest.TestCase):
 
 #     def test_process_without_gt_or_sol_id_raises(self):

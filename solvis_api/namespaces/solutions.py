@@ -1,32 +1,16 @@
 #!python
 
-import io
-import json
 import logging
-from functools import lru_cache
 from uuid import uuid4
 
-import geopandas as gpd
-import pandas as pd
-from flask_restx import Namespace, Resource, fields, reqparse
-from pandas.io import pickle
-from solvis import InversionSolution, new_sol, section_participation
-
-from solvis_api.config import API_KEY, API_URL, IS_OFFLINE, IS_TESTING, S3_URL, SNS_GT_TOPIC, SNS_IS_TOPIC
-
-# from solvis_api.namespaces.solution_analysis_geojson import get_solution_dataframe_result
-from solvis_api.namespaces.solution_analysis_geojson import api
-from solvis_api.solvis import multi_city_events
-from solvis_api.toshi_api.toshi_api import ToshiApi
-
-# from solvis_api.model import SolutionLocationsRadiiDF
-
-
-log = logging.getLogger(__name__)
-# log.setLevel(logging.DEBUG)
+from flask_restx import Resource, fields
 
 from solvis_api.aws_util import publish_message
-from solvis_api.datastore.datastore import get_ds
+from solvis_api.config import API_KEY, API_URL, S3_URL, SNS_GT_TOPIC, SNS_IS_TOPIC
+from solvis_api.namespaces.solution_analysis_geojson import api
+from solvis_api.toshi_api.toshi_api import ToshiApi
+
+log = logging.getLogger(__name__)
 
 headers = {"x-api-key": API_KEY}
 toshi_api = ToshiApi(API_URL, S3_URL, None, with_schema_validation=False, headers=headers)
