@@ -1,6 +1,5 @@
+import nzshm_common
 from flask import g
-
-import solvis_api.datastore.resources
 
 """
 A Flask Extension class so we can make all our datastore resources configurable
@@ -34,7 +33,7 @@ def get_ds():
 class Datastore(object):
     def __init__(self, resources=None):
         print('__init__ with resources', resources)
-        res = resources or solvis_api.datastore.resources
+        res = resources or nzshm_common.location
         self.configure(res)
 
     def configure(self, resources):

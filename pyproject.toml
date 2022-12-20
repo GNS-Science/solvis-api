@@ -32,6 +32,7 @@ geopandas = "^0.12.2"
 boto3 = "^1.26.33"
 solvis-store = {path = "/GNSDATA/API/solvis-store"}
 solvis = {path = "/GNSDATA/API/solvis"}
+nzshm-common = "^0.4.0"
 
 
 [tool.poetry.group.dev.dependencies]

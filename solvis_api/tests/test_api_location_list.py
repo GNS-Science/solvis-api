@@ -2,9 +2,10 @@
 
 import unittest
 
+# import solvis_api.datastore.resources
+import nzshm_common.location
 from moto import mock_dynamodb
 
-import solvis_api.datastore.resources
 from solvis_api.api import create_app
 from solvis_api.datastore.datastore import get_datastore
 
@@ -69,7 +70,7 @@ class TestKaikouraCase(unittest.TestCase):
     def setUp(self):
         app = create_app()
         ds = get_datastore()
-        ds.configure(solvis_api.datastore.resources)
+        ds.configure(nzshm_common.location)
         self.client = app.test_client()
 
     def test_get_one(self):

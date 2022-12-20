@@ -5,6 +5,7 @@ import logging
 from datetime import datetime as dt
 
 import geopandas as gpd
+import nzshm_common.location
 import shapely
 import solvis
 from flask_restx import Namespace, Resource, fields, reqparse
@@ -14,7 +15,6 @@ from solvis_api.cloudwatch import ServerlessMetricWriter
 
 # Set up your local config, from environment variables, with some sone defaults
 from solvis_api.config import API_KEY, API_URL, CLOUDWATCH_APP_NAME, S3_URL
-from solvis_api.datastore.resources import location_by_id
 from solvis_api.toshi_api.toshi_api import ToshiApi
 
 db_metrics = ServerlessMetricWriter(lambda_name=CLOUDWATCH_APP_NAME, metric_name="MethodDuration")
@@ -31,7 +31,7 @@ def locations_geojson(locations, radius_km):
     features = []
     for loc in locations:
         log.debug(f'LOC {loc}')
-        item = location_by_id(loc)
+        item = nzshm_common.location.location_by_id(loc)
         polygon = solvis.circle_polygon(radius_km * 1000, lat=item.get('latitude'), lon=item.get('longitude'))
         feature = dict(
             id=loc,

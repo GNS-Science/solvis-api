@@ -939,6 +939,17 @@ optional = false
 python-versions = ">=3.8"
 
 [[package]]
+name = "nzshm-common"
+version = "0.4.0"
+description = "A small pure python library for shared NZ NSHM data like locations."
+category = "main"
+optional = false
+python-versions = ">=3.8,<4.0.0"
+
+[package.extras]
+geometry = ["Shapely[geometry] (>=1.8.3,<2.0.0)", "geopandas[geometry] (>=0.11.1,<0.12.0)"]
+
+[[package]]
 name = "packaging"
 version = "22.0"
 description = "Core utilities for Python packages"
@@ -1658,7 +1669,7 @@ test = []
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "41cab6e847f168b0608de5dd78dd01b69cf195d97a3b9a11b8a9c8684ca8f36c"
+content-hash = "043c7077b5dd7e0114ce5775ed994fcf7caed8141e49dd592eac486692a5f1e3"
 
 [metadata.files]
 aiohttp = [
@@ -2411,6 +2422,10 @@ numpy = [
     {file = "numpy-1.24.0-pp38-pypy38_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:dbb0490f0a880700a6cc4d000384baf19c1f4df59fff158d9482d4dbbca2b239"},
     {file = "numpy-1.24.0-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:0104d8adaa3a4cc60c2777cab5196593bf8a7f416eda133be1f3803dd0838886"},
     {file = "numpy-1.24.0.tar.gz", hash = "sha256:c4ab7c9711fe6b235e86487ca74c1b092a6dd59a3cb45b63241ea0a148501853"},
+]
+nzshm-common = [
+    {file = "nzshm-common-0.4.0.tar.gz", hash = "sha256:f0f7d303548c70be0f12c7894b75fcf59a7019f068e9ab71f9c950b9ec63740b"},
+    {file = "nzshm_common-0.4.0-py3-none-any.whl", hash = "sha256:78572dde972362ee3b0c3b5e2633950cf9befcc7ada03a382ad5084e5c148ef1"},
 ]
 packaging = [
     {file = "packaging-22.0-py3-none-any.whl", hash = "sha256:957e2148ba0e1a3b282772e791ef1d8083648bc131c8ab0c1feba110ce1146c3"},
