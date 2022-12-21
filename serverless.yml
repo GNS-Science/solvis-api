@@ -51,7 +51,7 @@ custom:
 
   #serverless-wsgi settings
   wsgi:
-    app: api.api.app
+    app: solvis_api.api.app
     packRequirements: false
     pythonBin: python3
 
