@@ -32,7 +32,7 @@ geopandas = "^0.12.2"
 boto3 = "^1.26.33"
 nzshm-common = "^0.4.0"
 solvis-store = {git = "https://github.com/chrisbc/solvis-store.git", rev = "c8b5f7aa34a429cfc7519fdedc2b673e06210d6b"}
-solvis = {git = "https://github.com/GNS-Science/solvis.git"}
+solvis = {git = "https://github.com/GNS-Science/solvis.git", rev = "main"}
 
 
 [tool.poetry.group.dev.dependencies]
