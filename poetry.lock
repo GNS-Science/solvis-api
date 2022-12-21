@@ -1256,7 +1256,7 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 name = "requests-toolbelt"
 version = "0.10.1"
 description = "A utility belt for advanced users of python-requests"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
@@ -1639,7 +1639,7 @@ test = []
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "350e824635ce2831f895875c96421b90bb24e0c3323ea90a65f3709d1692ecf6"
+content-hash = "eba5a3d128d40e52710193f9c6f0bfb55189759af2b7a22237be6ff29928d8cb"
 
 [metadata.files]
 aiohttp = [

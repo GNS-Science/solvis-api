@@ -34,6 +34,8 @@ nzshm-common = "^0.4.0"
 solvis-store = {git = "https://github.com/chrisbc/solvis-store.git", rev = "c8b5f7aa34a429cfc7519fdedc2b673e06210d6b"}
 solvis = {git = "https://github.com/GNS-Science/solvis.git", rev = "main"}
 pyyaml = "^6.0"
+# FIXME the following should be installed by nshm-toshi-client
+requests-toolbelt = "^0.10.1"
 
 
 [tool.poetry.group.dev.dependencies]
