@@ -8,7 +8,7 @@ import yaml
 
 from solvis_api.aws_util import publish_message
 from solvis_api.config import API_KEY, API_URL, LOGGING_CFG, S3_URL
-from solvis_api.toshi_solvis_api.toshi_api import ToshiApi
+from solvis_api.toshi_api.toshi_api import ToshiApi
 
 log = logging.getLogger(__name__)
 

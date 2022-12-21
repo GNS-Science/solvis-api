@@ -169,7 +169,7 @@ functions:
 
   analyse-inversion-solution:
     description: The analysis handler of ${self:service}
-    handler: api/process_solution.handler
+    handler: solvis_api/process_solution.handler
     memorySize: 2048 # optional, in MB, default is 1024
     timeout: 300 # optional, in seconds, default is 6
     events:
@@ -188,7 +188,7 @@ functions:
 
   analyse-general-task:
     description: The General Task handler, does a fan-out to the analyse-inversion-solution handler.
-    handler: api/process_general_task.handler
+    handler: solvis_api/process_general_task.handler
     memorySize: 10240 # optional, in MB, default is 1024
     timeout: 60 # optional, in seconds, default is 6
     events:
