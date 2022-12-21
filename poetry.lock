@@ -1410,8 +1410,10 @@ pyproj = "*"
 Shapely = "*"
 
 [package.source]
-type = "directory"
-url = "../solvis"
+type = "git"
+url = "https://github.com/GNS-Science/solvis.git"
+reference = "HEAD"
+resolved_reference = "8fc93fc22d9bddfc66262e0f7fb98bc277eaef4f"
 
 [[package]]
 name = "solvis-store"
@@ -1432,8 +1434,10 @@ doc = []
 test = []
 
 [package.source]
-type = "directory"
-url = "../solvis-store"
+type = "git"
+url = "https://github.com/chrisbc/solvis-store.git"
+reference = "c8b5f7aa34a429cfc7519fdedc2b673e06210d6b"
+resolved_reference = "c8b5f7aa34a429cfc7519fdedc2b673e06210d6b"
 
 [[package]]
 name = "toml"
@@ -1669,7 +1673,7 @@ test = []
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "043c7077b5dd7e0114ce5775ed994fcf7caed8141e49dd592eac486692a5f1e3"
+content-hash = "6559fee8e267e48463ecc40dee65b98e1035637b55f58a68a75184c877333977"
 
 [metadata.files]
 aiohttp = [
