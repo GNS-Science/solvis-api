@@ -36,7 +36,7 @@ jobs:
 
       - name: test with tox (uses tox-gh-actions to select correct environment)
         run:
-          poetry run tox
+          poetry run tox -vv
 
       - name: list files
         run: ls -l .
