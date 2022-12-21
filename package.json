@@ -7,7 +7,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy": "serverless deploy --stage ${STAGE}"
+    "deploy": "serverless deploy --stage ${STAGE}",
+    "sls_doctor": "serverless doctor"
   },
   "repository": {
     "type": "git",
