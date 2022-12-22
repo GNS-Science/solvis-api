@@ -1185,7 +1185,7 @@ numpy-style = ["docstring_parser (>=0.7)"]
 
 [[package]]
 name = "pytz"
-version = "2022.7"
+version = "2021.3"
 description = "World timezone definitions, modern and historical"
 category = "main"
 optional = false
@@ -1361,25 +1361,23 @@ python-versions = "*"
 
 [[package]]
 name = "solvis"
-version = "0.0.3"
-description = "My short description for my project."
+version = "0.3.1"
+description = "analysis of opensha modular solution files."
 category = "main"
 optional = false
-python-versions = ">=3.8.0"
-develop = false
+python-versions = ">=3.8,<4.0"
 
 [package.dependencies]
-geopandas = "*"
-numpy = "*"
-pandas = "*"
-pyproj = "*"
-Shapely = "*"
+click-plugins = ">=1.1.1,<2.0.0"
+geopandas = ">=0.12.2,<0.13.0"
+pandas = ">=1.3.4,<2.0.0"
+pyproj = ">=3.3,<4.0"
+python-dateutil = ">=2.8.2,<3.0.0"
+pytz = "2021.3"
+shapely = ">=1.8.4,<2.0.0"
 
-[package.source]
-type = "git"
-url = "https://github.com/GNS-Science/solvis.git"
-reference = "main"
-resolved_reference = "8fc93fc22d9bddfc66262e0f7fb98bc277eaef4f"
+[package.extras]
+scripts = ["click (>=8.1.3,<9.0.0)"]
 
 [[package]]
 name = "solvis-store"
@@ -1637,7 +1635,7 @@ test = []
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "b92e7fa890e05473a1a9adbd95c5491feead97f5ef0de30b3d514c138863612a"
+content-hash = "399eb36bff1fc10b2aa657cb2ec909e70785d0d727f6f4c392ad1ee90adbe2e8"
 
 [metadata.files]
 aiohttp = [
@@ -2554,8 +2552,8 @@ pytkdocs = [
     {file = "pytkdocs-0.16.1.tar.gz", hash = "sha256:e2ccf6dfe9dbbceb09818673f040f1a7c32ed0bffb2d709b06be6453c4026045"},
 ]
 pytz = [
-    {file = "pytz-2022.7-py2.py3-none-any.whl", hash = "sha256:93007def75ae22f7cd991c84e02d434876818661f8df9ad5df9e950ff4e52cfd"},
-    {file = "pytz-2022.7.tar.gz", hash = "sha256:7ccfae7b4b2c067464a6733c6261673fdb8fd1be905460396b97a073e9fa683a"},
+    {file = "pytz-2021.3-py2.py3-none-any.whl", hash = "sha256:3672058bc3453457b622aab7a1c3bfd5ab0bdae451512f6cf25f64ed37f5b87c"},
+    {file = "pytz-2021.3.tar.gz", hash = "sha256:acad2d8b20a1af07d4e4c9d2e9285c5ed9104354062f275f3fcd88dcef4f1326"},
 ]
 pywin32-ctypes = [
     {file = "pywin32-ctypes-0.2.0.tar.gz", hash = "sha256:24ffc3b341d457d48e8922352130cf2644024a4ff09762a2261fd34c36ee5942"},
@@ -2681,7 +2679,10 @@ snowballstemmer = [
     {file = "snowballstemmer-2.2.0-py2.py3-none-any.whl", hash = "sha256:c8e1716e83cc398ae16824e5572ae04e0d9fc2c6b985fb0f900f5f0c96ecba1a"},
     {file = "snowballstemmer-2.2.0.tar.gz", hash = "sha256:09b16deb8547d3412ad7b590689584cd0fe25ec8db3be37788be3810cbf19cb1"},
 ]
-solvis = []
+solvis = [
+    {file = "solvis-0.3.1-py3-none-any.whl", hash = "sha256:0b7bf946f741263d22a93cd06f28e535710e12cfd51760d87ecc1efc07e882bb"},
+    {file = "solvis-0.3.1.tar.gz", hash = "sha256:867483803aa0c28a1dd613f532f8b2f874f92b3179358d2edd2696a3baa8e73d"},
+]
 solvis-store = []
 toml = [
     {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
