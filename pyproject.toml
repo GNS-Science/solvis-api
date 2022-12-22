@@ -36,6 +36,8 @@ solvis = {git = "https://github.com/GNS-Science/solvis.git", rev = "main"}
 pyyaml = "^6.0"
 # FIXME the following should be installed by nshm-toshi-client
 requests-toolbelt = "^0.10.1"
+# FIXME the following should be installed by solvis
+shapely = "^1.8.4"
 
 
 [tool.poetry.group.dev.dependencies]
